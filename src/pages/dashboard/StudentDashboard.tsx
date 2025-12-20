@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { 
-  Home, Heart, Calendar, ChevronRight, Building2, Users, GitCompare
+  Home, Heart, Calendar, ChevronRight, Building2, Users, GitCompare, FileText, User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +13,12 @@ import { PropertyGrid } from '@/components/property/PropertyGrid';
 import { Property } from '@/types/database';
 
 const studentNavItems: SidebarItem[] = [
+  { icon: User, label: 'Profile', href: '/student/profile' },
   { icon: Home, label: 'Browse Listings', href: '/dashboard' },
   { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
-  { icon: Calendar, label: 'My Bookings', href: '/student/bookings' },
-  { icon: Users, label: 'Shared Rentals', href: '/student/shared' },
-  { icon: GitCompare, label: 'Compare Properties', href: '/student/compare' },
+  { icon: Users, label: 'Shared Rental Space', href: '/student/shared' },
+  { icon: GitCompare, label: 'Compare Listings', href: '/student/compare' },
+  { icon: FileText, label: 'Blog', href: '/student/blog' },
 ];
 
 export default function StudentDashboard() {
@@ -85,7 +86,7 @@ export default function StudentDashboard() {
         userInfo={{
           name: profile?.full_name || 'Student',
           subtitle: 'Student Account',
-          avatarContent: profile?.full_name?.charAt(0) || 'S'
+          avatarUrl: profile?.avatar_url || undefined,
         }}
       />
 

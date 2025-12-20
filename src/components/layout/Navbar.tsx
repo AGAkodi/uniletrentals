@@ -1,15 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Home, Search, User, LogOut, Building2, Shield, Bell } from 'lucide-react';
+import { Menu, X, Home, LogOut, User, Building2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,60 +32,21 @@ export function Navbar() {
             <span className="text-xl font-bold tracking-tight">UNILET</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link 
-              to="/search" 
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Search className="h-4 w-4" />
-              Search
-            </Link>
-            <Link 
-              to="/blog" 
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Blog
-            </Link>
-          </div>
-
-          {/* Auth Section */}
+          {/* Auth Section - Desktop */}
           <div className="hidden md:flex items-center gap-3">
             {user ? (
-              <>
-                <Button variant="ghost" size="icon" asChild>
-                  <Link to="/notifications">
-                    <Bell className="h-5 w-5" />
-                  </Link>
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="gap-2">
-                      <User className="h-4 w-4" />
-                      {profile?.full_name || 'Account'}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem asChild>
-                      <Link to={getDashboardLink()} className="flex items-center gap-2">
-                        {profile?.role === 'admin' ? (
-                          <Shield className="h-4 w-4" />
-                        ) : profile?.role === 'agent' ? (
-                          <Building2 className="h-4 w-4" />
-                        ) : (
-                          <User className="h-4 w-4" />
-                        )}
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
+              <Button variant="outline" asChild>
+                <Link to={getDashboardLink()} className="flex items-center gap-2">
+                  {profile?.role === 'admin' ? (
+                    <Shield className="h-4 w-4" />
+                  ) : profile?.role === 'agent' ? (
+                    <Building2 className="h-4 w-4" />
+                  ) : (
+                    <User className="h-4 w-4" />
+                  )}
+                  Dashboard
+                </Link>
+              </Button>
             ) : (
               <>
                 <Button variant="ghost" asChild>
@@ -120,21 +74,6 @@ export function Navbar() {
         {isOpen && (
           <div className="md:hidden py-4 border-t animate-fade-in">
             <div className="flex flex-col gap-2">
-              <Link
-                to="/search"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-secondary transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                <Search className="h-4 w-4" />
-                Search Properties
-              </Link>
-              <Link
-                to="/blog"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-secondary transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Blog
-              </Link>
               {user ? (
                 <>
                   <Link
