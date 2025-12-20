@@ -1,23 +1,21 @@
 import { Link } from 'react-router-dom';
-import { Heart, Loader2 } from 'lucide-react';
+import { Heart, Loader2, User, Home, Users, GitCompare, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
 import { DashboardSidebar, SidebarItem } from '@/components/dashboard/DashboardSidebar';
 import { PropertyGrid } from '@/components/property/PropertyGrid';
 import { Property } from '@/types/database';
-import { 
-  Home, Calendar, Users, GitCompare, LogOut 
-} from 'lucide-react';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 
 const studentNavItems: SidebarItem[] = [
+  { icon: User, label: 'Profile', href: '/student/profile' },
   { icon: Home, label: 'Browse Listings', href: '/dashboard' },
   { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
-  { icon: Calendar, label: 'My Bookings', href: '/student/bookings' },
-  { icon: Users, label: 'Shared Rentals', href: '/student/shared' },
-  { icon: GitCompare, label: 'Compare Properties', href: '/student/compare' },
+  { icon: Users, label: 'Shared Rental Space', href: '/student/shared' },
+  { icon: GitCompare, label: 'Compare Listings', href: '/student/compare' },
+  { icon: FileText, label: 'Blog', href: '/student/blog' },
 ];
 
 export default function SavedProperties() {
@@ -58,7 +56,7 @@ export default function SavedProperties() {
         userInfo={{
           name: profile?.full_name || 'Student',
           subtitle: 'Student Account',
-          avatarContent: profile?.full_name?.charAt(0) || 'S'
+          avatarUrl: profile?.avatar_url || undefined,
         }}
       />
 

@@ -27,6 +27,10 @@ import SavedProperties from "./pages/student/SavedProperties";
 import MyBookings from "./pages/student/MyBookings";
 import SharedRentals from "./pages/student/SharedRentals";
 import CompareProperties from "./pages/student/CompareProperties";
+import StudentProfile from "./pages/student/Profile";
+import StudentBlog from "./pages/student/Blog";
+import AgentProfile from "./pages/agent/Profile";
+import AdminProfile from "./pages/admin/Profile";
 
 const queryClient = new QueryClient();
 
@@ -45,14 +49,18 @@ const App = () => (
             <Route path="/search" element={<Search />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
             <Route path="/dashboard" element={<StudentDashboard />} />
+            <Route path="/student/profile" element={<StudentProfile />} />
             <Route path="/student/saved" element={<SavedProperties />} />
             <Route path="/student/bookings" element={<MyBookings />} />
             <Route path="/student/shared" element={<SharedRentals />} />
             <Route path="/student/compare" element={<CompareProperties />} />
+            <Route path="/student/blog" element={<StudentBlog />} />
             <Route path="/agent" element={<AgentDashboard />} />
+            <Route path="/agent/profile" element={<AgentProfile />} />
             <Route path="/agent/add-property" element={<AddProperty />} />
             <Route path="/agent/verification" element={<AgentVerification />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/profile" element={<AdminProfile />} />
             <Route path="/admin/verify-agents" element={<VerifyAgents />} />
             <Route path="/admin/approve-listings" element={<ApproveListings />} />
             <Route path="/admin/reports" element={<AdminReports />} />

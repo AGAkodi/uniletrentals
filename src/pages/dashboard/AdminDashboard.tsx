@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { 
-  Home, Users, Building2, Shield, FileCheck, BarChart3, 
-  CreditCard, Flag, FileText, CheckCircle, Clock, TrendingUp, Crown
+  Users, Building2, Shield, FileCheck, 
+  Flag, FileText, CheckCircle, Clock, TrendingUp, User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,16 +62,11 @@ export default function AdminDashboard() {
   });
 
   const adminNavItems: SidebarItem[] = [
-    { icon: Home, label: 'Overview', href: '/admin' },
-    { icon: Crown, label: 'Manage Admins', href: '/admin/manage-admins' },
-    { icon: Users, label: 'Users', href: '/admin/users' },
-    { icon: Shield, label: 'Verify Agents', href: '/admin/verify-agents', badge: stats?.pendingAgents },
-    { icon: Building2, label: 'Properties', href: '/admin/properties' },
-    { icon: FileCheck, label: 'Approve Listings', href: '/admin/approve-listings', badge: stats?.pendingListings },
-    { icon: Flag, label: 'Reports', href: '/admin/reports', badge: stats?.pendingReports },
-    { icon: FileText, label: 'Blog/CMS', href: '/admin/blog' },
-    { icon: CreditCard, label: 'Payments', href: '/admin/payments' },
-    { icon: BarChart3, label: 'Analytics', href: '/admin/analytics' },
+    { icon: User, label: 'Profile', href: '/admin/profile' },
+    { icon: Shield, label: 'Agent Review', href: '/admin/verify-agents', badge: stats?.pendingAgents },
+    { icon: FileCheck, label: 'Listing Approval', href: '/admin/approve-listings', badge: stats?.pendingListings },
+    { icon: Flag, label: 'Disputes', href: '/admin/reports', badge: stats?.pendingReports },
+    { icon: FileText, label: 'Create Blog', href: '/admin/blog' },
   ];
 
   return (
@@ -83,7 +78,7 @@ export default function AdminDashboard() {
         userInfo={{
           name: profile?.full_name || 'Admin',
           subtitle: 'Administrator',
-          avatarContent: <Shield className="h-6 w-6" />
+          avatarUrl: profile?.avatar_url || undefined,
         }}
       />
 

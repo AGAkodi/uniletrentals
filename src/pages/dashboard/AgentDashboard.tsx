@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { 
-  Home, Building2, Plus, Calendar, BarChart3, CreditCard, 
-  FileCheck, CheckCircle, Clock, Eye
+  Building2, Plus, Calendar, BarChart3, 
+  FileCheck, CheckCircle, Clock, Eye, User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,13 +13,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Property } from '@/types/database';
 
 const agentNavItems: SidebarItem[] = [
-  { icon: Home, label: 'Overview', href: '/agent' },
+  { icon: User, label: 'Profile', href: '/agent/profile' },
   { icon: Building2, label: 'My Listings', href: '/agent/listings' },
   { icon: Plus, label: 'Add Property', href: '/agent/add-property' },
   { icon: Calendar, label: 'Bookings', href: '/agent/bookings' },
   { icon: BarChart3, label: 'Analytics', href: '/agent/analytics' },
-  { icon: CreditCard, label: 'Payments', href: '/agent/payments' },
-  { icon: FileCheck, label: 'Verification', href: '/agent/verification' },
 ];
 
 export default function AgentDashboard() {
@@ -76,7 +74,7 @@ export default function AgentDashboard() {
         userInfo={{
           name: profile?.full_name || 'Agent',
           subtitle: isVerified ? 'Verified Agent' : 'Pending Verification',
-          avatarContent: profile?.full_name?.charAt(0) || 'A'
+          avatarUrl: profile?.avatar_url || undefined,
         }}
         extraContent={
           verification?.agent_id && (
