@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Home, Search, User, LogOut, Building2, Shield, Bell } from 'lucide-react';
+import { Menu, X, Home, User, LogOut, Building2, Shield, Users, GitCompare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import {
@@ -42,11 +42,18 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             <Link 
-              to="/search" 
+              to="/shared-rentals" 
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Search className="h-4 w-4" />
-              Search
+              <Users className="h-4 w-4" />
+              Shared Rentals
+            </Link>
+            <Link 
+              to="/compare" 
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <GitCompare className="h-4 w-4" />
+              Compare
             </Link>
             <Link 
               to="/blog" 
@@ -60,11 +67,6 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
-                <Button variant="ghost" size="icon" asChild>
-                  <Link to="/notifications">
-                    <Bell className="h-5 w-5" />
-                  </Link>
-                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="gap-2">
@@ -98,6 +100,9 @@ export function Navbar() {
                 <Button variant="ghost" asChild>
                   <Link to="/auth/login">Sign In</Link>
                 </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/auth/agent-signup">Become an Agent</Link>
+                </Button>
                 <Button asChild>
                   <Link to="/auth/signup">Get Started</Link>
                 </Button>
@@ -121,12 +126,20 @@ export function Navbar() {
           <div className="md:hidden py-4 border-t animate-fade-in">
             <div className="flex flex-col gap-2">
               <Link
-                to="/search"
+                to="/shared-rentals"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-secondary transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                <Search className="h-4 w-4" />
-                Search Properties
+                <Users className="h-4 w-4" />
+                Shared Rentals
+              </Link>
+              <Link
+                to="/compare"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-secondary transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                <GitCompare className="h-4 w-4" />
+                Compare Properties
               </Link>
               <Link
                 to="/blog"
@@ -164,6 +177,13 @@ export function Navbar() {
                     onClick={() => setIsOpen(false)}
                   >
                     Sign In
+                  </Link>
+                  <Link
+                    to="/auth/agent-signup"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-secondary transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Become an Agent
                   </Link>
                   <Link
                     to="/auth/signup"

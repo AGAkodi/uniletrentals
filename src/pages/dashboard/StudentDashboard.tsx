@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Home, Heart, Search, Calendar, Bell, User, LogOut, 
-  Star, Flag, ChevronRight, Building2
+  Building2, ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,11 +15,10 @@ import { Property } from '@/types/database';
 
 const navItems = [
   { icon: Home, label: 'Overview', href: '/dashboard' },
-  { icon: Heart, label: 'Saved Properties', href: '/dashboard/saved' },
-  { icon: Search, label: 'Saved Searches', href: '/dashboard/searches' },
-  { icon: Calendar, label: 'My Bookings', href: '/dashboard/bookings' },
-  { icon: Star, label: 'My Reviews', href: '/dashboard/reviews' },
-  { icon: Bell, label: 'Notifications', href: '/dashboard/notifications' },
+  { icon: Search, label: 'Browse Listings', href: '/browse' },
+  { icon: Heart, label: 'Saved Properties', href: '/saved' },
+  { icon: Calendar, label: 'My Bookings', href: '/bookings' },
+  { icon: Bell, label: 'Notifications', href: '/notifications' },
 ];
 
 export default function StudentDashboard() {
@@ -81,18 +80,19 @@ export default function StudentDashboard() {
 
           <nav className="flex-1 p-4 space-y-1">
             {navItems.map((item) => (
-              <button
+              <Link
                 key={item.label}
-                onClick={() => setActiveTab(item.label.toLowerCase())}
+                to={item.href}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
                   activeTab === item.label.toLowerCase()
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-secondary'
                 }`}
+                onClick={() => setActiveTab(item.label.toLowerCase())}
               >
                 <item.icon className="h-5 w-5" />
                 {item.label}
-              </button>
+              </Link>
             ))}
           </nav>
 
@@ -113,7 +113,7 @@ export default function StudentDashboard() {
             <h1 className="text-3xl font-bold mb-8">Welcome back, {profile?.full_name?.split(' ')[0] || 'Student'}!</h1>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -136,35 +136,7 @@ export default function StudentDashboard() {
                     </div>
                     <div>
                       <p className="text-2xl font-bold">{bookings?.length || 0}</p>
-                      <p className="text-sm text-muted-foreground">Upcoming Bookings</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center">
-                      <Star className="h-6 w-6 text-warning" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">0</p>
-                      <p className="text-sm text-muted-foreground">Reviews Given</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-info/10 flex items-center justify-center">
-                      <Search className="h-6 w-6 text-info" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">0</p>
-                      <p className="text-sm text-muted-foreground">Saved Searches</p>
+                      <p className="text-sm text-muted-foreground">My Bookings</p>
                     </div>
                   </div>
                 </CardContent>
@@ -176,7 +148,7 @@ export default function StudentDashboard() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Saved Properties</CardTitle>
                 <Button variant="ghost" size="sm" asChild>
-                  <Link to="/dashboard/saved">
+                  <Link to="/saved">
                     View All <ChevronRight className="h-4 w-4 ml-1" />
                   </Link>
                 </Button>
@@ -190,7 +162,7 @@ export default function StudentDashboard() {
                     <h3 className="text-lg font-semibold mb-2">No saved properties yet</h3>
                     <p className="text-muted-foreground mb-4">Start browsing and save properties you like!</p>
                     <Button asChild>
-                      <Link to="/search">Browse Properties</Link>
+                      <Link to="/browse">Browse Listings</Link>
                     </Button>
                   </div>
                 )}
@@ -200,9 +172,9 @@ export default function StudentDashboard() {
             {/* Upcoming Bookings */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Upcoming Bookings</CardTitle>
+                <CardTitle>My Bookings</CardTitle>
                 <Button variant="ghost" size="sm" asChild>
-                  <Link to="/dashboard/bookings">
+                  <Link to="/bookings">
                     View All <ChevronRight className="h-4 w-4 ml-1" />
                   </Link>
                 </Button>
