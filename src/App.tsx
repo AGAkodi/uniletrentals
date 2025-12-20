@@ -23,6 +23,10 @@ import SetupAdmin from "./pages/admin/SetupAdmin";
 import ManageAdmins from "./pages/admin/ManageAdmins";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import SavedProperties from "./pages/student/SavedProperties";
+import MyBookings from "./pages/student/MyBookings";
+import SharedRentals from "./pages/student/SharedRentals";
+import CompareProperties from "./pages/student/CompareProperties";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +45,10 @@ const App = () => (
             <Route path="/search" element={<Search />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
             <Route path="/dashboard" element={<StudentDashboard />} />
+            <Route path="/student/saved" element={<SavedProperties />} />
+            <Route path="/student/bookings" element={<MyBookings />} />
+            <Route path="/student/shared" element={<SharedRentals />} />
+            <Route path="/student/compare" element={<CompareProperties />} />
             <Route path="/agent" element={<AgentDashboard />} />
             <Route path="/agent/add-property" element={<AddProperty />} />
             <Route path="/agent/verification" element={<AgentVerification />} />
