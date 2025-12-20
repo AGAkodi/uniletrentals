@@ -19,6 +19,7 @@ import AgentVerification from "./pages/agent/Verification";
 import VerifyAgents from "./pages/admin/VerifyAgents";
 import ApproveListings from "./pages/admin/ApproveListings";
 import AdminReports from "./pages/admin/Reports";
+import SetupAdmin from "./pages/admin/SetupAdmin";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/admin/verify-agents" element={<VerifyAgents />} />
             <Route path="/admin/approve-listings" element={<ApproveListings />} />
             <Route path="/admin/reports" element={<AdminReports />} />
+            <Route path="/setup-admin" element={<SetupAdmin />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="*" element={<NotFound />} />
