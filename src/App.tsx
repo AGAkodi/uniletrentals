@@ -23,6 +23,11 @@ import SetupAdmin from "./pages/admin/SetupAdmin";
 import ManageAdmins from "./pages/admin/ManageAdmins";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import SavedProperties from "./pages/student/SavedProperties";
+import MyBookings from "./pages/student/MyBookings";
+import SharedRentals from "./pages/student/SharedRentals";
+import PropertyComparison from "./pages/student/PropertyComparison";
+import BrowseListings from "./pages/student/BrowseListings";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +44,11 @@ const App = () => (
             <Route path="/auth/signup" element={<Signup />} />
             <Route path="/auth/agent-signup" element={<AgentSignup />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/browse" element={<BrowseListings />} />
+            <Route path="/saved" element={<SavedProperties />} />
+            <Route path="/bookings" element={<MyBookings />} />
+            <Route path="/shared-rentals" element={<SharedRentals />} />
+            <Route path="/compare" element={<PropertyComparison />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
             <Route path="/dashboard" element={<StudentDashboard />} />
             <Route path="/agent" element={<AgentDashboard />} />
