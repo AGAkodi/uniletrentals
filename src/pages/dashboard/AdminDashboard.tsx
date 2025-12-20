@@ -1,35 +1,18 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { 
   Home, Users, Building2, Shield, FileCheck, BarChart3, 
-  CreditCard, Flag, FileText, Bell, LogOut, CheckCircle, 
-  Clock, XCircle, TrendingUp, Crown
+  CreditCard, Flag, FileText, CheckCircle, Clock, TrendingUp, Crown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
+import { DashboardSidebar, SidebarItem } from '@/components/dashboard/DashboardSidebar';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 
-const navItems = [
-  { icon: Home, label: 'Overview', href: '/admin' },
-  { icon: Crown, label: 'Manage Admins', href: '/admin/manage-admins' },
-  { icon: Users, label: 'Users', href: '/admin/users' },
-  { icon: Shield, label: 'Verify Agents', href: '/admin/verify-agents' },
-  { icon: Building2, label: 'Properties', href: '/admin/properties' },
-  { icon: FileCheck, label: 'Approve Listings', href: '/admin/approve-listings' },
-  { icon: Flag, label: 'Reports', href: '/admin/reports' },
-  { icon: FileText, label: 'Blog/CMS', href: '/admin/blog' },
-  { icon: CreditCard, label: 'Payments', href: '/admin/payments' },
-  { icon: BarChart3, label: 'Analytics', href: '/admin/analytics' },
-  { icon: Bell, label: 'Notifications', href: '/admin/notifications' },
-];
-
 export default function AdminDashboard() {
-  const { profile, signOut } = useAuth();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
+  const { profile } = useAuth();
 
   const { data: stats } = useSWR('admin-stats', async () => {
     const [profiles, properties, bookings, pendingAgents, pendingListings, reports] = await Promise.all([
@@ -78,231 +61,186 @@ export default function AdminDashboard() {
     return data;
   });
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
+  const adminNavItems: SidebarItem[] = [
+    { icon: Home, label: 'Overview', href: '/admin' },
+    { icon: Crown, label: 'Manage Admins', href: '/admin/manage-admins' },
+    { icon: Users, label: 'Users', href: '/admin/users' },
+    { icon: Shield, label: 'Verify Agents', href: '/admin/verify-agents', badge: stats?.pendingAgents },
+    { icon: Building2, label: 'Properties', href: '/admin/properties' },
+    { icon: FileCheck, label: 'Approve Listings', href: '/admin/approve-listings', badge: stats?.pendingListings },
+    { icon: Flag, label: 'Reports', href: '/admin/reports', badge: stats?.pendingReports },
+    { icon: FileText, label: 'Blog/CMS', href: '/admin/blog' },
+    { icon: CreditCard, label: 'Payments', href: '/admin/payments' },
+    { icon: BarChart3, label: 'Analytics', href: '/admin/analytics' },
+  ];
 
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
       
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="hidden md:flex flex-col w-64 min-h-[calc(100vh-4rem)] bg-background border-r">
-          <div className="p-6 border-b">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-destructive flex items-center justify-center text-destructive-foreground text-lg font-semibold">
-                <Shield className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-semibold">{profile?.full_name || 'Admin'}</p>
-                <p className="text-sm text-muted-foreground">Administrator</p>
-              </div>
-            </div>
+      <DashboardSidebar 
+        items={adminNavItems}
+        userInfo={{
+          name: profile?.full_name || 'Admin',
+          subtitle: 'Administrator',
+          avatarContent: <Shield className="h-6 w-6" />
+        }}
+      />
+
+      <main className="pt-8 px-6 md:px-8 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Users</p>
+                    <p className="text-3xl font-bold">{stats?.totalUsers || 0}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {stats?.students || 0} students, {stats?.agents || 0} agents
+                    </p>
+                  </div>
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Listings</p>
+                    <p className="text-3xl font-bold">{stats?.totalListings || 0}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {stats?.approvedListings || 0} approved
+                    </p>
+                  </div>
+                  <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                    <Building2 className="h-6 w-6 text-accent" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Bookings</p>
+                    <p className="text-3xl font-bold">{stats?.totalBookings || 0}</p>
+                  </div>
+                  <div className="h-12 w-12 rounded-xl bg-info/10 flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-info" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Pending Actions</p>
+                    <p className="text-3xl font-bold">
+                      {(stats?.pendingAgents || 0) + (stats?.pendingListings || 0) + (stats?.pendingReports || 0)}
+                    </p>
+                  </div>
+                  <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-warning" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {navItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => setActiveTab(item.label.toLowerCase())}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                  activeTab === item.label.toLowerCase()
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-secondary'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.label}
-                {item.label === 'Verify Agents' && stats?.pendingAgents ? (
-                  <span className="ml-auto bg-destructive text-destructive-foreground text-xs px-2 py-0.5 rounded-full">
-                    {stats.pendingAgents}
-                  </span>
-                ) : null}
-                {item.label === 'Approve Listings' && stats?.pendingListings ? (
-                  <span className="ml-auto bg-warning text-warning-foreground text-xs px-2 py-0.5 rounded-full">
-                    {stats.pendingListings}
-                  </span>
-                ) : null}
-              </button>
-            ))}
-          </nav>
-
-          <div className="p-4 border-t">
-            <button
-              onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
-            >
-              <LogOut className="h-5 w-5" />
-              Sign Out
-            </button>
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto">
-            <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Users</p>
-                      <p className="text-3xl font-bold">{stats?.totalUsers || 0}</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {stats?.students || 0} students, {stats?.agents || 0} agents
-                      </p>
-                    </div>
-                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Users className="h-6 w-6 text-primary" />
-                    </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Pending Agent Verifications */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Pending Agent Verifications
+                </CardTitle>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/admin/verify-agents">View All</Link>
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {pendingAgentsList && pendingAgentsList.length > 0 ? (
+                  <div className="space-y-4">
+                    {pendingAgentsList.map((agent: any) => (
+                      <div key={agent.id} className="flex items-center justify-between p-4 rounded-lg bg-secondary/50">
+                        <div>
+                          <p className="font-semibold">{agent.user?.full_name}</p>
+                          <p className="text-sm text-muted-foreground">{agent.company_name || 'Individual Agent'}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="accent">
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Approve
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Listings</p>
-                      <p className="text-3xl font-bold">{stats?.totalListings || 0}</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {stats?.approvedListings || 0} approved
-                      </p>
-                    </div>
-                    <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                      <Building2 className="h-6 w-6 text-accent" />
-                    </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-10 w-10 mx-auto text-accent mb-2" />
+                    <p className="text-muted-foreground">No pending verifications</p>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </CardContent>
+            </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Bookings</p>
-                      <p className="text-3xl font-bold">{stats?.totalBookings || 0}</p>
-                    </div>
-                    <div className="h-12 w-12 rounded-xl bg-info/10 flex items-center justify-center">
-                      <TrendingUp className="h-6 w-6 text-info" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Pending Actions</p>
-                      <p className="text-3xl font-bold">
-                        {(stats?.pendingAgents || 0) + (stats?.pendingListings || 0) + (stats?.pendingReports || 0)}
-                      </p>
-                    </div>
-                    <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center">
-                      <Clock className="h-6 w-6 text-warning" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Pending Agent Verifications */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5" />
-                    Pending Agent Verifications
-                  </CardTitle>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to="/admin/verify-agents">View All</Link>
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  {pendingAgentsList && pendingAgentsList.length > 0 ? (
-                    <div className="space-y-4">
-                      {pendingAgentsList.map((agent: any) => (
-                        <div key={agent.id} className="flex items-center justify-between p-4 rounded-lg bg-secondary/50">
+            {/* Pending Property Approvals */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Pending Listings
+                </CardTitle>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/admin/approve-listings">View All</Link>
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {pendingProperties && pendingProperties.length > 0 ? (
+                  <div className="space-y-4">
+                    {pendingProperties.map((property: any) => (
+                      <div key={property.id} className="flex items-center justify-between p-4 rounded-lg bg-secondary/50">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-lg overflow-hidden bg-muted">
+                            <img 
+                              src={property.images?.[0] || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=200'} 
+                              alt={property.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                           <div>
-                            <p className="font-semibold">{agent.user?.full_name}</p>
-                            <p className="text-sm text-muted-foreground">{agent.company_name || 'Individual Agent'}</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="accent">
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Approve
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Reject
-                            </Button>
+                            <p className="font-semibold">{property.title}</p>
+                            <p className="text-sm text-muted-foreground">by {property.agent?.full_name}</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <CheckCircle className="h-10 w-10 mx-auto text-accent mb-2" />
-                      <p className="text-muted-foreground">No pending verifications</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Pending Property Approvals */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    Pending Listings
-                  </CardTitle>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to="/admin/approve-listings">View All</Link>
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  {pendingProperties && pendingProperties.length > 0 ? (
-                    <div className="space-y-4">
-                      {pendingProperties.map((property: any) => (
-                        <div key={property.id} className="flex items-center justify-between p-4 rounded-lg bg-secondary/50">
-                          <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 rounded-lg overflow-hidden bg-muted">
-                              <img 
-                                src={property.images?.[0] || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=200'} 
-                                alt={property.title}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <div>
-                              <p className="font-semibold">{property.title}</p>
-                              <p className="text-sm text-muted-foreground">by {property.agent?.full_name}</p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="accent">Approve</Button>
-                            <Button size="sm" variant="outline">Reject</Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <CheckCircle className="h-10 w-10 mx-auto text-accent mb-2" />
-                      <p className="text-muted-foreground">No pending listings</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                        <Button size="sm" variant="accent">Approve</Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-10 w-10 mx-auto text-accent mb-2" />
+                    <p className="text-muted-foreground">No pending listings</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
