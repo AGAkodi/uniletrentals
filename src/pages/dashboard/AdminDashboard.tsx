@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   Home, Users, Building2, Shield, FileCheck, BarChart3, 
   CreditCard, Flag, FileText, Bell, LogOut, CheckCircle, 
-  Clock, XCircle, TrendingUp
+  Clock, XCircle, TrendingUp, Crown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const navItems = [
   { icon: Home, label: 'Overview', href: '/admin' },
+  { icon: Crown, label: 'Manage Admins', href: '/admin/manage-admins' },
   { icon: Users, label: 'Users', href: '/admin/users' },
   { icon: Shield, label: 'Verify Agents', href: '/admin/verify-agents' },
   { icon: Building2, label: 'Properties', href: '/admin/properties' },
