@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { Home, Mail, Lock, Eye, EyeOff, User, Phone, Building2, MapPin, Upload } from 'lucide-react';
+import { Home, Mail, Lock, Eye, EyeOff, User, Phone, Building2, MapPin, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,12 +16,24 @@ const agentSignupSchema = z.object({
   companyName: z.string().optional(),
   email: z.string().email('Please enter a valid email'),
   phone: z.string().min(10, 'Please enter a valid phone number').max(15),
-  officeAddress: z.string().min(10, 'Please provide your office address'),
+  officeAddress: z.string().min(10, 'Please provide your office/address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
+  isStudentAgent: z.boolean(),
+  department: z.string().optional(),
+  matricNumber: z.string().optional(),
+  studentId: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
+}).refine((data) => {
+  if (data.isStudentAgent) {
+    return data.department && data.department.length >= 2;
+  }
+  return true;
+}, {
+  message: "Department is required for student agents",
+  path: ['department'],
 });
 
 export default function AgentSignup() {
@@ -36,6 +49,10 @@ export default function AgentSignup() {
     officeAddress: '',
     password: '',
     confirmPassword: '',
+    isStudentAgent: false,
+    department: '',
+    matricNumber: '',
+    studentId: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -61,11 +78,17 @@ export default function AgentSignup() {
 
     setLoading(true);
     
-    const { error } = await signUp(formData.email, formData.password, {
+    const metadata: Record<string, unknown> = {
       full_name: formData.fullName,
       phone: formData.phone,
       role: 'agent',
-    });
+    };
+
+    if (formData.isStudentAgent) {
+      metadata.student_id = formData.studentId;
+    }
+
+    const { error } = await signUp(formData.email, formData.password, metadata);
 
     if (error) {
       setLoading(false);
@@ -77,7 +100,6 @@ export default function AgentSignup() {
       return;
     }
 
-    // Get the current user to create verification record
     const { data: { user } } = await supabase.auth.getUser();
     
     if (user) {
@@ -99,7 +121,6 @@ export default function AgentSignup() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel - Form */}
       <div className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
@@ -186,7 +207,7 @@ export default function AgentSignup() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="officeAddress">Office Address</Label>
+              <Label htmlFor="officeAddress">Office Address / Address</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                 <Textarea
@@ -200,6 +221,59 @@ export default function AgentSignup() {
               </div>
               {errors.officeAddress && <p className="text-sm text-destructive">{errors.officeAddress}</p>}
             </div>
+
+            {/* Student Agent Toggle */}
+            <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <GraduationCap className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-medium">Are you a Student Agent?</p>
+                  <p className="text-sm text-muted-foreground">Tick if you're a student listing properties</p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.isStudentAgent}
+                onCheckedChange={(checked) => setFormData({ ...formData, isStudentAgent: checked })}
+              />
+            </div>
+
+            {/* Student Agent Fields */}
+            {formData.isStudentAgent && (
+              <div className="space-y-4 p-4 border border-primary/20 rounded-lg bg-primary/5">
+                <p className="text-sm font-medium text-primary">Student Information</p>
+                <div className="space-y-2">
+                  <Label htmlFor="department">Department</Label>
+                  <Input
+                    id="department"
+                    name="department"
+                    placeholder="e.g., Computer Science"
+                    value={formData.department}
+                    onChange={handleChange}
+                  />
+                  {errors.department && <p className="text-sm text-destructive">{errors.department}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="matricNumber">Matric Number</Label>
+                  <Input
+                    id="matricNumber"
+                    name="matricNumber"
+                    placeholder="e.g., CSC/2021/001"
+                    value={formData.matricNumber}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="studentId">Student ID</Label>
+                  <Input
+                    id="studentId"
+                    name="studentId"
+                    placeholder="Your student ID number"
+                    value={formData.studentId}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -256,7 +330,6 @@ export default function AgentSignup() {
         </div>
       </div>
 
-      {/* Right Panel - Image */}
       <div className="hidden lg:flex flex-1 bg-primary relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80" />
         <div className="absolute inset-0 flex items-center justify-center p-12">
