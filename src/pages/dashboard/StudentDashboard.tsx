@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { 
-  Home, Heart, Calendar, ChevronRight, Building2, Users, GitCompare, FileText, User
+  Home, Heart, Calendar, ChevronRight, Building2, Users, GitCompare, FileText, User, LayoutDashboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,8 +13,9 @@ import { PropertyGrid } from '@/components/property/PropertyGrid';
 import { Property } from '@/types/database';
 
 const studentNavItems: SidebarItem[] = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: User, label: 'Profile', href: '/student/profile' },
-  { icon: Home, label: 'Browse Listings', href: '/dashboard' },
+  { icon: Home, label: 'Browse Listings', href: '/search' },
   { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
   { icon: Users, label: 'Shared Rental Space', href: '/student/shared' },
   { icon: GitCompare, label: 'Compare Listings', href: '/student/compare' },

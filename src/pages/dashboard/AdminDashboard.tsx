@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { 
   Users, Building2, Shield, FileCheck, 
-  Flag, FileText, CheckCircle, Clock, TrendingUp, User
+  Flag, FileText, CheckCircle, Clock, TrendingUp, User, LayoutDashboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,6 +62,7 @@ export default function AdminDashboard() {
   });
 
   const adminNavItems: SidebarItem[] = [
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
     { icon: User, label: 'Profile', href: '/admin/profile' },
     { icon: Shield, label: 'Agent Review', href: '/admin/verify-agents', badge: stats?.pendingAgents },
     { icon: FileCheck, label: 'Listing Approval', href: '/admin/approve-listings', badge: stats?.pendingListings },

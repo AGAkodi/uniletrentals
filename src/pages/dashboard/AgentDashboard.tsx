@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { 
   Building2, Plus, Calendar, BarChart3, 
-  FileCheck, CheckCircle, Clock, Eye, User
+  FileCheck, CheckCircle, Clock, Eye, User, LayoutDashboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Property } from '@/types/database';
 
 const agentNavItems: SidebarItem[] = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/agent' },
   { icon: User, label: 'Profile', href: '/agent/profile' },
   { icon: Building2, label: 'My Listings', href: '/agent/listings' },
   { icon: Plus, label: 'Add Property', href: '/agent/add-property' },
