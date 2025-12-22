@@ -59,14 +59,14 @@ export function DashboardSidebar({ items, userInfo, extraContent }: DashboardSid
 
   return (
     <>
-      {/* Avatar Trigger - positioned in top-right */}
+      {/* Avatar Trigger - positioned in top navbar, same line as logo */}
       <button
         id="avatar-trigger"
-        className="fixed top-20 right-4 z-50"
+        className="fixed top-3 right-4 z-50"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle sidebar"
       >
-        <Avatar className="h-11 w-11 ring-2 ring-primary/20 hover:ring-primary/50 transition-all cursor-pointer">
+        <Avatar className="h-10 w-10 ring-2 ring-primary/20 hover:ring-primary/50 transition-all cursor-pointer">
           {userInfo.avatarUrl ? (
             <AvatarImage src={userInfo.avatarUrl} alt={userInfo.name} />
           ) : null}
