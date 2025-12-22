@@ -23,7 +23,7 @@ const signupSchema = z.object({
 export default function Signup() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signUp, getDashboardPath } = useAuth();
+  const { signUp } = useAuth();
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -56,7 +56,7 @@ export default function Signup() {
     }
 
     setLoading(true);
-    const { error, role } = await signUp(formData.email, formData.password, {
+    const { error } = await signUp(formData.email, formData.password, {
       full_name: formData.fullName,
       phone: formData.phone,
       student_id: formData.studentId,
@@ -74,10 +74,7 @@ export default function Signup() {
     }
 
     toast({ title: 'Account created!', description: 'Welcome to UNILET.' });
-    
-    // Redirect based on role
-    const dashboardPath = getDashboardPath(role || 'student');
-    navigate(dashboardPath);
+    navigate('/dashboard');
   };
 
   return (

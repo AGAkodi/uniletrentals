@@ -39,7 +39,7 @@ const agentSignupSchema = z.object({
 export default function AgentSignup() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signUp, getDashboardPath } = useAuth();
+  const { signUp } = useAuth();
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -88,7 +88,7 @@ export default function AgentSignup() {
       metadata.student_id = formData.studentId;
     }
 
-    const { error, role } = await signUp(formData.email, formData.password, metadata);
+    const { error } = await signUp(formData.email, formData.password, metadata);
 
     if (error) {
       setLoading(false);
@@ -116,10 +116,7 @@ export default function AgentSignup() {
       title: 'Account created!', 
       description: 'Your agent account is pending verification. You can upload documents from your dashboard.' 
     });
-    
-    // Redirect based on role
-    const dashboardPath = getDashboardPath(role || 'agent');
-    navigate(dashboardPath);
+    navigate('/agent');
   };
 
   return (

@@ -13,7 +13,7 @@ import { PropertyGrid } from '@/components/property/PropertyGrid';
 import { Property } from '@/types/database';
 
 const studentNavItems: SidebarItem[] = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard/student' },
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: User, label: 'Profile', href: '/student/profile' },
   { icon: Home, label: 'Browse Listings', href: '/search' },
   { icon: Heart, label: 'Saved Properties', href: '/student/saved' },

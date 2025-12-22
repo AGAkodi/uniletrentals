@@ -16,7 +16,7 @@ const loginSchema = z.object({
 export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, getDashboardPath } = useAuth();
+  const { signIn } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,7 +39,7 @@ export default function Login() {
     }
 
     setLoading(true);
-    const { error, role } = await signIn(email, password);
+    const { error } = await signIn(email, password);
     setLoading(false);
 
     if (error) {
@@ -52,10 +52,7 @@ export default function Login() {
     }
 
     toast({ title: 'Welcome back!', description: 'You have been logged in successfully.' });
-    
-    // Redirect based on role
-    const dashboardPath = getDashboardPath(role || 'student');
-    navigate(dashboardPath);
+    navigate('/dashboard');
   };
 
   return (

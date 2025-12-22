@@ -2,18 +2,16 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile, UserRole } from '@/types/database';
-import { getDashboardPath } from './redirectToDashboard';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, metadata: Record<string, unknown>) => Promise<{ error: Error | null; role?: UserRole }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null; role?: UserRole }>;
+  signUp: (email: string, password: string, metadata: Record<string, unknown>) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   isRole: (role: UserRole) => boolean;
-  getDashboardPath: (role: UserRole) => string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, metadata: Record<string, unknown>): Promise<{ error: Error | null; role?: UserRole }> => {
+  const signUp = async (email: string, password: string, metadata: Record<string, unknown>) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -84,39 +82,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     });
     
-    if (error) {
-      return { error: error as Error };
-    }
-    
-    // Return the role from metadata for immediate redirect
-    const role = (metadata.role as UserRole) || 'student';
-    return { error: null, role };
+    return { error: error as Error | null };
   };
 
-  const signIn = async (email: string, password: string): Promise<{ error: Error | null; role?: UserRole }> => {
-    const { data, error } = await supabase.auth.signInWithPassword({
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     
-    if (error) {
-      return { error: error as Error };
-    }
-    
-    // Fetch user role from profiles table
-    if (data.user) {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .maybeSingle();
-      
-      if (profileData) {
-        return { error: null, role: profileData.role as UserRole };
-      }
-    }
-    
-    return { error: null, role: 'student' };
+    return { error: error as Error | null };
   };
 
   const signOut = async () => {
@@ -140,7 +115,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signOut,
       isRole,
-      getDashboardPath,
     }}>
       {children}
     </AuthContext.Provider>
