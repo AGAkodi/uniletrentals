@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Home } from 'lucide-react';
+import { Menu, X, Home, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -22,7 +22,7 @@ export function Navbar() {
 
           {/* Auth Section - Desktop */}
           <div className="hidden md:flex items-center gap-3">
-            {!user && (
+            {!loading && !user && (
               <>
                 <Button variant="ghost" asChild>
                   <Link to="/auth/login">Sign In</Link>
@@ -31,6 +31,14 @@ export function Navbar() {
                   <Link to="/auth/signup">Get Started</Link>
                 </Button>
               </>
+            )}
+            {!loading && user && (
+              <Button asChild>
+                <Link to="/dashboard">
+                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
             )}
           </div>
 
@@ -49,7 +57,7 @@ export function Navbar() {
         {isOpen && (
           <div className="md:hidden py-4 border-t animate-fade-in">
             <div className="flex flex-col gap-2">
-              {!user && (
+              {!loading && !user && (
                 <>
                   <Link
                     to="/auth/login"
@@ -66,6 +74,16 @@ export function Navbar() {
                     Get Started
                   </Link>
                 </>
+              )}
+              {!loading && user && (
+                <Link
+                  to="/dashboard"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Link>
               )}
             </div>
           </div>
