@@ -1,24 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Home, LogOut, User, Building2, Shield } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Menu, X, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, profile, signOut } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
-
-  const getDashboardLink = () => {
-    if (profile?.role === 'admin') return '/admin';
-    if (profile?.role === 'agent') return '/agent';
-    return '/dashboard';
-  };
+  const { user } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -34,20 +22,7 @@ export function Navbar() {
 
           {/* Auth Section - Desktop */}
           <div className="hidden md:flex items-center gap-3">
-            {user ? (
-              <Button variant="outline" asChild>
-                <Link to={getDashboardLink()} className="flex items-center gap-2">
-                  {profile?.role === 'admin' ? (
-                    <Shield className="h-4 w-4" />
-                  ) : profile?.role === 'agent' ? (
-                    <Building2 className="h-4 w-4" />
-                  ) : (
-                    <User className="h-4 w-4" />
-                  )}
-                  Dashboard
-                </Link>
-              </Button>
-            ) : (
+            {!user && (
               <>
                 <Button variant="ghost" asChild>
                   <Link to="/auth/login">Sign In</Link>
@@ -74,28 +49,7 @@ export function Navbar() {
         {isOpen && (
           <div className="md:hidden py-4 border-t animate-fade-in">
             <div className="flex flex-col gap-2">
-              {user ? (
-                <>
-                  <Link
-                    to={getDashboardLink()}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-secondary transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <User className="h-4 w-4" />
-                    Dashboard
-                  </Link>
-                  <button
-                    onClick={() => {
-                      handleSignOut();
-                      setIsOpen(false);
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-secondary transition-colors text-destructive"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign Out
-                  </button>
-                </>
-              ) : (
+              {!user && (
                 <>
                   <Link
                     to="/auth/login"
