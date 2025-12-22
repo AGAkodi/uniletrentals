@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/lib/auth';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -22,7 +23,16 @@ export function Navbar() {
 
           {/* Auth Section - Desktop */}
           <div className="hidden md:flex items-center gap-3">
-            {!user && (
+            {user ? (
+              <Link to="/dashboard" className="flex items-center gap-2">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'User'} />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {profile?.full_name?.charAt(0).toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+            ) : (
               <>
                 <Button variant="ghost" asChild>
                   <Link to="/auth/login">Sign In</Link>
@@ -49,7 +59,21 @@ export function Navbar() {
         {isOpen && (
           <div className="md:hidden py-4 border-t animate-fade-in">
             <div className="flex flex-col gap-2">
-              {!user && (
+              {user ? (
+                <Link
+                  to="/dashboard"
+                  className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-secondary transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'User'} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                      {profile?.full_name?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>{profile?.full_name || 'Dashboard'}</span>
+                </Link>
+              ) : (
                 <>
                   <Link
                     to="/auth/login"
