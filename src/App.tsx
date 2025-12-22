@@ -11,6 +11,7 @@ import Signup from "./pages/auth/Signup";
 import AgentSignup from "./pages/auth/AgentSignup";
 import Search from "./pages/Search";
 import PropertyDetail from "./pages/PropertyDetail";
+import Dashboard from "./pages/Dashboard";
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
 import AgentDashboard from "./pages/dashboard/AgentDashboard";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
@@ -48,7 +49,8 @@ const App = () => (
             <Route path="/auth/agent-signup" element={<AgentSignup />} />
             <Route path="/search" element={<Search />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
-            <Route path="/dashboard" element={<StudentDashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/student" element={<StudentDashboard />} />
             <Route path="/student/profile" element={<StudentProfile />} />
             <Route path="/student/saved" element={<SavedProperties />} />
             <Route path="/student/bookings" element={<MyBookings />} />
