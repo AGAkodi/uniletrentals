@@ -22,7 +22,11 @@ export function Navbar() {
 
           {/* Auth Section - Desktop */}
           <div className="hidden md:flex items-center gap-3">
-            {!user && (
+            {user ? (
+              <Button asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+            ) : (
               <>
                 <Button variant="ghost" asChild>
                   <Link to="/auth/login">Sign In</Link>
@@ -49,7 +53,15 @@ export function Navbar() {
         {isOpen && (
           <div className="md:hidden py-4 border-t animate-fade-in">
             <div className="flex flex-col gap-2">
-              {!user && (
+              {user ? (
+                <Link
+                  to="/dashboard"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Dashboard
+                </Link>
+              ) : (
                 <>
                   <Link
                     to="/auth/login"
