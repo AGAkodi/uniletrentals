@@ -62,7 +62,7 @@ export function DashboardSidebar({ items, userInfo, extraContent }: DashboardSid
       {/* Avatar Trigger - positioned in top-right */}
       <button
         id="avatar-trigger"
-        className="fixed top-20 right-4 z-50"
+        className="fixed top-4 right-4 z-50"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle sidebar"
       >
