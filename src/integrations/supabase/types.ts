@@ -198,8 +198,11 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_read: boolean | null
+          link: string | null
           message: string
           read: boolean | null
+          recipient_role: Database["public"]["Enums"]["user_role"] | null
           title: string
           type: string | null
           user_id: string
@@ -207,8 +210,11 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
+          link?: string | null
           message: string
           read?: boolean | null
+          recipient_role?: Database["public"]["Enums"]["user_role"] | null
           title: string
           type?: string | null
           user_id: string
@@ -216,8 +222,11 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
+          link?: string | null
           message?: string
           read?: boolean | null
+          recipient_role?: Database["public"]["Enums"]["user_role"] | null
           title?: string
           type?: string | null
           user_id?: string

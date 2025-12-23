@@ -31,6 +31,7 @@ import StudentProfile from "./pages/student/Profile";
 import StudentBlog from "./pages/student/Blog";
 import AgentProfile from "./pages/agent/Profile";
 import AdminProfile from "./pages/admin/Profile";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/search" element={<Search />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
             <Route path="/dashboard" element={<StudentDashboard />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/student/profile" element={<StudentProfile />} />
             <Route path="/student/saved" element={<SavedProperties />} />
             <Route path="/student/bookings" element={<MyBookings />} />
