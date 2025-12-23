@@ -9,8 +9,9 @@ import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const { profile } = useAuth();
 
   const { data: stats } = useSWR('admin-stats', async () => {
@@ -219,5 +220,13 @@ export default function AdminDashboard() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <ProtectedRoute allowedRoles={['admin']}>
+      <AdminDashboardContent />
+    </ProtectedRoute>
   );
 }
