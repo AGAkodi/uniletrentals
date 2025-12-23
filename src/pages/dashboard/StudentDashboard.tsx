@@ -10,8 +10,9 @@ import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 import { PropertyGrid } from '@/components/property/PropertyGrid';
 import { Property } from '@/types/database';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
-export default function StudentDashboard() {
+function StudentDashboardContent() {
   const { profile } = useAuth();
 
   const { data: featuredProperties } = useSWR<Property[]>(
@@ -168,5 +169,13 @@ export default function StudentDashboard() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function StudentDashboard() {
+  return (
+    <ProtectedRoute allowedRoles={['student']}>
+      <StudentDashboardContent />
+    </ProtectedRoute>
   );
 }

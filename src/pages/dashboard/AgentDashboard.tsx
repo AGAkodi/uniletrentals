@@ -10,8 +10,9 @@ import { Navbar } from '@/components/layout/Navbar';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 import { Property } from '@/types/database';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
-export default function AgentDashboard() {
+function AgentDashboardContent() {
   const { profile } = useAuth();
 
   const { data: properties } = useSWR<Property[]>(
@@ -239,5 +240,13 @@ export default function AgentDashboard() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function AgentDashboard() {
+  return (
+    <ProtectedRoute allowedRoles={['agent']}>
+      <AgentDashboardContent />
+    </ProtectedRoute>
   );
 }
