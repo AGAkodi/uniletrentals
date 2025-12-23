@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Home, LogOut, LayoutDashboard, User, Building2, Shield, CheckCircle, Bell, Heart, Calendar, FileText, Users, AlertTriangle, Settings } from 'lucide-react';
+import { Menu, X, Home, LogOut, LayoutDashboard, User, Building2, Shield, CheckCircle, Heart, FileText, Users, AlertTriangle, GitCompare, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -16,9 +16,12 @@ import { supabase } from '@/integrations/supabase/client';
 
 const studentMenuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
-  { icon: Calendar, label: 'My Bookings', href: '/student/bookings' },
   { icon: User, label: 'Profile', href: '/student/profile' },
+  { icon: Search, label: 'Browse Listings', href: '/search' },
+  { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
+  { icon: Users, label: 'Shared Rental Space', href: '/student/shared-rentals' },
+  { icon: GitCompare, label: 'Compare Listings', href: '/student/compare' },
+  { icon: FileText, label: 'Blog', href: '/student/blog' },
 ];
 
 const agentMenuItems = [
