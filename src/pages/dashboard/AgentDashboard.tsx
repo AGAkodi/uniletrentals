@@ -7,19 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
-import { DashboardSidebar, SidebarItem } from '@/components/dashboard/DashboardSidebar';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 import { Property } from '@/types/database';
-
-const agentNavItems: SidebarItem[] = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/agent' },
-  { icon: User, label: 'Profile', href: '/agent/profile' },
-  { icon: Building2, label: 'My Listings', href: '/agent/listings' },
-  { icon: Plus, label: 'Add Property', href: '/agent/add-property' },
-  { icon: Calendar, label: 'Bookings', href: '/agent/bookings' },
-  { icon: BarChart3, label: 'Analytics', href: '/agent/analytics' },
-];
 
 export default function AgentDashboard() {
   const { profile } = useAuth();
@@ -69,20 +59,6 @@ export default function AgentDashboard() {
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
-      
-      <DashboardSidebar 
-        items={agentNavItems}
-        userInfo={{
-          name: profile?.full_name || 'Agent',
-          subtitle: isVerified ? 'Verified Agent' : 'Pending Verification',
-          avatarUrl: profile?.avatar_url || undefined,
-        }}
-        extraContent={
-          verification?.agent_id && (
-            <p className="mt-2 text-xs text-muted-foreground font-mono">{verification.agent_id}</p>
-          )
-        }
-      />
 
       <main className="pt-8 px-6 md:px-8 lg:px-12">
         <div className="max-w-6xl mx-auto">

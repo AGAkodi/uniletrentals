@@ -1,24 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Lock, Camera, Save, ArrowLeft, Shield, FileCheck, Building2, Flag, FileText } from 'lucide-react';
+import { User, Mail, Phone, Lock, Camera, Save, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
-import { DashboardSidebar, SidebarItem } from '@/components/dashboard/DashboardSidebar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-
-const adminNavItems: SidebarItem[] = [
-  { icon: User, label: 'Profile', href: '/admin/profile' },
-  { icon: Shield, label: 'Agent Review', href: '/admin/verify-agents' },
-  { icon: FileCheck, label: 'Listing Approval', href: '/admin/approve-listings' },
-  { icon: Flag, label: 'Disputes', href: '/admin/reports' },
-  { icon: FileText, label: 'Create Blog', href: '/admin/blog' },
-];
 
 export default function AdminProfile() {
   const { profile } = useAuth();
@@ -98,15 +89,6 @@ export default function AdminProfile() {
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
-      
-      <DashboardSidebar 
-        items={adminNavItems}
-        userInfo={{
-          name: profile?.full_name || 'Admin',
-          subtitle: 'Administrator',
-          avatarUrl: avatarPreview || profile?.avatar_url || undefined,
-        }}
-      />
 
       <main className="pt-8 px-6 md:px-8 lg:px-12">
         <div className="max-w-2xl mx-auto">

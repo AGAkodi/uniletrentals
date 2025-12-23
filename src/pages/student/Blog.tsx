@@ -1,23 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, User as UserIcon, Home, Heart, Users, GitCompare, FileText, User } from 'lucide-react';
+import { ArrowLeft, Calendar, User as UserIcon, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
-import { DashboardSidebar, SidebarItem } from '@/components/dashboard/DashboardSidebar';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 import { Blog } from '@/types/database';
-
-const studentNavItems: SidebarItem[] = [
-  { icon: User, label: 'Profile', href: '/student/profile' },
-  { icon: Home, label: 'Browse Listings', href: '/dashboard' },
-  { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
-  { icon: Users, label: 'Shared Rental Space', href: '/student/shared' },
-  { icon: GitCompare, label: 'Compare Listings', href: '/student/compare' },
-  { icon: FileText, label: 'Blog', href: '/student/blog' },
-];
 
 export default function StudentBlog() {
   const { profile } = useAuth();
@@ -37,15 +27,6 @@ export default function StudentBlog() {
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
-      
-      <DashboardSidebar 
-        items={studentNavItems}
-        userInfo={{
-          name: profile?.full_name || 'Student',
-          subtitle: 'Student Account',
-          avatarUrl: profile?.avatar_url || undefined,
-        }}
-      />
 
       <main className="pt-8 px-6 md:px-8 lg:px-12">
         <div className="max-w-6xl mx-auto">

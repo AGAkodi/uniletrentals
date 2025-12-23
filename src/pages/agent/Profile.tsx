@@ -1,25 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Lock, Camera, Save, ArrowLeft, Building2, Plus, Calendar, BarChart3 } from 'lucide-react';
+import { User, Mail, Phone, Lock, Camera, Save, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
-import { DashboardSidebar, SidebarItem } from '@/components/dashboard/DashboardSidebar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import useSWR from 'swr';
-
-const agentNavItems: SidebarItem[] = [
-  { icon: User, label: 'Profile', href: '/agent/profile' },
-  { icon: Building2, label: 'My Listings', href: '/agent/listings' },
-  { icon: Plus, label: 'Add Property', href: '/agent/add-property' },
-  { icon: Calendar, label: 'Bookings', href: '/agent/bookings' },
-  { icon: BarChart3, label: 'Analytics', href: '/agent/analytics' },
-];
 
 export default function AgentProfile() {
   const { profile } = useAuth();
@@ -111,15 +102,6 @@ export default function AgentProfile() {
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
-      
-      <DashboardSidebar 
-        items={agentNavItems}
-        userInfo={{
-          name: profile?.full_name || 'Agent',
-          subtitle: verification?.verification_status === 'approved' ? 'Verified Agent' : 'Pending Verification',
-          avatarUrl: avatarPreview || profile?.avatar_url || undefined,
-        }}
-      />
 
       <main className="pt-8 px-6 md:px-8 lg:px-12">
         <div className="max-w-2xl mx-auto">

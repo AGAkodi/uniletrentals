@@ -1,12 +1,105 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, Home } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Menu, X, Home, LogOut, LayoutDashboard, User, Building2, Shield, CheckCircle, Bell, Heart, Calendar, FileText, Users, AlertTriangle, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { supabase } from '@/integrations/supabase/client';
+
+const studentMenuItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+  { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
+  { icon: Calendar, label: 'My Bookings', href: '/student/bookings' },
+  { icon: User, label: 'Profile', href: '/student/profile' },
+];
+
+const agentMenuItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/agent/dashboard' },
+  { icon: Building2, label: 'Add Property', href: '/agent/add-property' },
+  { icon: CheckCircle, label: 'Verification', href: '/agent/verification' },
+  { icon: User, label: 'Profile', href: '/agent/profile' },
+];
+
+const adminMenuItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
+  { icon: CheckCircle, label: 'Approve Listings', href: '/admin/approve-listings' },
+  { icon: Shield, label: 'Verify Agents', href: '/admin/verify-agents' },
+  { icon: AlertTriangle, label: 'Reports', href: '/admin/reports' },
+  { icon: Users, label: 'Manage Admins', href: '/admin/manage-admins' },
+  { icon: User, label: 'Profile', href: '/admin/profile' },
+];
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get menu items based on role
+  const getMenuItems = () => {
+    if (!profile) return studentMenuItems;
+    switch (profile.role) {
+      case 'admin':
+        return adminMenuItems;
+      case 'agent':
+        return agentMenuItems;
+      default:
+        return studentMenuItems;
+    }
+  };
+
+  const menuItems = getMenuItems();
+
+  // Fetch unread notifications count
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchUnreadCount = async () => {
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+      
+      setUnreadCount(count || 0);
+    };
+
+    fetchUnreadCount();
+
+    const channel = supabase
+      .channel('notifications-navbar')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          fetchUnreadCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -22,7 +115,7 @@ export function Navbar() {
 
           {/* Auth Section - Desktop */}
           <div className="hidden md:flex items-center gap-3">
-            {!user && (
+            {!user ? (
               <>
                 <Button variant="ghost" asChild>
                   <Link to="/auth/login">Sign In</Link>
@@ -31,42 +124,162 @@ export function Navbar() {
                   <Link to="/auth/signup">Get Started</Link>
                 </Button>
               </>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="relative" aria-label="Open menu">
+                    <Avatar className="h-10 w-10 ring-2 ring-primary/20 hover:ring-primary/50 transition-all cursor-pointer">
+                      {profile?.avatar_url ? (
+                        <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
+                      ) : null}
+                      <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                        {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-destructive text-destructive-foreground text-xs font-medium rounded-full">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64 bg-background border shadow-lg z-50">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex items-center gap-3 py-2">
+                      <Avatar className="h-10 w-10">
+                        {profile?.avatar_url ? (
+                          <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
+                        ) : null}
+                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                          {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold truncate">{profile?.full_name}</p>
+                        <p className="text-sm text-muted-foreground truncate capitalize">{profile?.role}</p>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {menuItems.map((item) => {
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <DropdownMenuItem
+                        key={item.href}
+                        onClick={() => navigate(item.href)}
+                        className={`flex items-center gap-3 cursor-pointer ${isActive ? 'bg-secondary' : ''}`}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 text-destructive cursor-pointer focus:text-destructive"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
 
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          {!user ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          ) : (
+            <div className="md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="relative" aria-label="Open menu">
+                    <Avatar className="h-10 w-10 ring-2 ring-primary/20 hover:ring-primary/50 transition-all cursor-pointer">
+                      {profile?.avatar_url ? (
+                        <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
+                      ) : null}
+                      <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                        {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-destructive text-destructive-foreground text-xs font-medium rounded-full">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64 bg-background border shadow-lg z-50">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex items-center gap-3 py-2">
+                      <Avatar className="h-10 w-10">
+                        {profile?.avatar_url ? (
+                          <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
+                        ) : null}
+                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                          {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold truncate">{profile?.full_name}</p>
+                        <p className="text-sm text-muted-foreground truncate capitalize">{profile?.role}</p>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {menuItems.map((item) => {
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <DropdownMenuItem
+                        key={item.href}
+                        onClick={() => navigate(item.href)}
+                        className={`flex items-center gap-3 cursor-pointer ${isActive ? 'bg-secondary' : ''}`}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 text-destructive cursor-pointer focus:text-destructive"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
 
-        {/* Mobile Menu */}
-        {isOpen && (
+        {/* Mobile Menu - Only for non-authenticated users */}
+        {isOpen && !user && (
           <div className="md:hidden py-4 border-t animate-fade-in">
             <div className="flex flex-col gap-2">
-              {!user && (
-                <>
-                  <Link
-                    to="/auth/login"
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-secondary transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/auth/signup"
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Get Started
-                  </Link>
-                </>
-              )}
+              <Link
+                to="/auth/login"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-secondary transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/auth/signup"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Get Started
+              </Link>
             </div>
           </div>
         )}

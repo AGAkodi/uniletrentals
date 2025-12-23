@@ -1,22 +1,12 @@
 import { Link } from 'react-router-dom';
-import { Users, MapPin, Bed, Loader2, User, Home, Heart, GitCompare, FileText } from 'lucide-react';
+import { Users, MapPin, Bed, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
-import { DashboardSidebar, SidebarItem } from '@/components/dashboard/DashboardSidebar';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
-
-const studentNavItems: SidebarItem[] = [
-  { icon: User, label: 'Profile', href: '/student/profile' },
-  { icon: Home, label: 'Browse Listings', href: '/dashboard' },
-  { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
-  { icon: Users, label: 'Shared Rental Space', href: '/student/shared' },
-  { icon: GitCompare, label: 'Compare Listings', href: '/student/compare' },
-  { icon: FileText, label: 'Blog', href: '/student/blog' },
-];
 
 export default function SharedRentals() {
   const { profile } = useAuth();
@@ -47,15 +37,6 @@ export default function SharedRentals() {
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
-      
-      <DashboardSidebar 
-        items={studentNavItems}
-        userInfo={{
-          name: profile?.full_name || 'Student',
-          subtitle: 'Student Account',
-          avatarUrl: profile?.avatar_url || undefined,
-        }}
-      />
 
       <main className="pt-8 px-6 md:px-8 lg:px-12">
         <div className="max-w-6xl mx-auto">
