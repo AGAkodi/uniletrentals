@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, Upload, FileCheck, Clock, CheckCircle, 
-  XCircle, Loader2, User, IdCard, Camera
+  XCircle, Loader2, User, IdCard, Camera, FileArchive, X, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +12,7 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/layout/Navbar';
 import useSWR, { mutate } from 'swr';
+import JSZip from 'jszip';
 
 interface VerificationData {
   id: string;
@@ -21,9 +21,18 @@ interface VerificationData {
   office_address: string | null;
   government_id_url: string | null;
   passport_photo_url: string | null;
+  zip_file_url: string | null;
   verification_status: 'pending' | 'approved' | 'rejected';
+  rejection_reason: string | null;
   agent_id: string | null;
   verified_at: string | null;
+  submitted_at: string | null;
+}
+
+interface UploadedFile {
+  file: File;
+  preview: string | null;
+  type: 'government_id' | 'passport' | 'other';
 }
 
 export default function AgentVerification() {
@@ -31,10 +40,7 @@ export default function AgentVerification() {
   const { toast } = useToast();
   const { profile } = useAuth();
   
-  const [governmentIdFile, setGovernmentIdFile] = useState<File | null>(null);
-  const [passportPhotoFile, setPassportPhotoFile] = useState<File | null>(null);
-  const [governmentIdPreview, setGovernmentIdPreview] = useState<string | null>(null);
-  const [passportPhotoPreview, setPassportPhotoPreview] = useState<string | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const { data: verification, isLoading } = useSWR<VerificationData | null>(
@@ -49,60 +55,72 @@ export default function AgentVerification() {
     }
   );
 
-  useEffect(() => {
-    if (verification?.government_id_url) {
-      setGovernmentIdPreview(verification.government_id_url);
-    }
-    if (verification?.passport_photo_url) {
-      setPassportPhotoPreview(verification.passport_photo_url);
-    }
-  }, [verification]);
-
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>, 
-    type: 'government_id' | 'passport_photo'
+    type: 'government_id' | 'passport' | 'other'
   ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    
+    files.forEach(file => {
+      if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+        toast({ title: 'Only images and PDFs are allowed', variant: 'destructive' });
+        return;
+      }
 
-    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-      toast({ title: 'Only images and PDFs are allowed', variant: 'destructive' });
-      return;
-    }
+      if (file.size > 10 * 1024 * 1024) {
+        toast({ title: 'File must be less than 10MB', variant: 'destructive' });
+        return;
+      }
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: 'File must be less than 10MB', variant: 'destructive' });
-      return;
-    }
-
-    if (type === 'government_id') {
-      setGovernmentIdFile(file);
+      let preview: string | null = null;
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
-        reader.onloadend = () => setGovernmentIdPreview(reader.result as string);
+        reader.onloadend = () => {
+          setUploadedFiles(prev => [...prev, { 
+            file, 
+            preview: reader.result as string, 
+            type 
+          }]);
+        };
         reader.readAsDataURL(file);
       } else {
-        setGovernmentIdPreview(null);
+        setUploadedFiles(prev => [...prev, { file, preview: null, type }]);
       }
-    } else {
-      setPassportPhotoFile(file);
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = () => setPassportPhotoPreview(reader.result as string);
-        reader.readAsDataURL(file);
-      } else {
-        setPassportPhotoPreview(null);
-      }
-    }
+    });
+
+    // Reset input
+    e.target.value = '';
   };
 
-  const uploadFile = async (file: File, type: string): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${profile?.id}/${type}-${Date.now()}.${fileExt}`;
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const createZipAndUpload = async (): Promise<string> => {
+    const zip = new JSZip();
+    
+    // Add all files to ZIP
+    for (const uploadedFile of uploadedFiles) {
+      const folder = zip.folder(uploadedFile.type);
+      if (folder) {
+        folder.file(uploadedFile.file.name, uploadedFile.file);
+      } else {
+        zip.file(`${uploadedFile.type}/${uploadedFile.file.name}`, uploadedFile.file);
+      }
+    }
+    
+    // Generate ZIP blob
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    
+    // Upload to Supabase storage
+    const fileName = `${profile?.id}/verification-${Date.now()}.zip`;
     
     const { error: uploadError } = await supabase.storage
       .from('agent-docs')
-      .upload(fileName, file, { upsert: true });
+      .upload(fileName, zipBlob, { 
+        upsert: true,
+        contentType: 'application/zip'
+      });
 
     if (uploadError) throw uploadError;
 
@@ -116,36 +134,33 @@ export default function AgentVerification() {
   const handleSubmit = async () => {
     if (!profile) return;
 
-    if (!governmentIdFile && !verification?.government_id_url) {
-      toast({ title: 'Please upload your National ID', variant: 'destructive' });
+    // Validate required documents
+    const hasGovernmentId = uploadedFiles.some(f => f.type === 'government_id');
+    const hasPassport = uploadedFiles.some(f => f.type === 'passport');
+
+    if (!hasGovernmentId) {
+      toast({ title: 'Please upload your Government ID (National ID)', variant: 'destructive' });
       return;
     }
 
-    if (!passportPhotoFile && !verification?.passport_photo_url) {
-      toast({ title: 'Please upload your passport photo', variant: 'destructive' });
+    if (!hasPassport) {
+      toast({ title: 'Please upload your Passport Photograph', variant: 'destructive' });
       return;
     }
 
     setUploading(true);
 
     try {
-      let governmentIdUrl = verification?.government_id_url;
-      let passportPhotoUrl = verification?.passport_photo_url;
+      // Create ZIP and upload
+      const zipUrl = await createZipAndUpload();
 
-      if (governmentIdFile) {
-        governmentIdUrl = await uploadFile(governmentIdFile, 'government-id');
-      }
-
-      if (passportPhotoFile) {
-        passportPhotoUrl = await uploadFile(passportPhotoFile, 'passport-photo');
-      }
-
+      // Update verification record
       const { error } = await supabase
         .from('agent_verifications')
         .update({
-          government_id_url: governmentIdUrl,
-          passport_photo_url: passportPhotoUrl,
+          zip_file_url: zipUrl,
           verification_status: 'pending',
+          submitted_at: new Date().toISOString(),
         })
         .eq('user_id', profile.id);
 
@@ -155,9 +170,12 @@ export default function AgentVerification() {
       mutate(`agent-verification-${profile.id}`);
 
       toast({ 
-        title: 'Documents uploaded!', 
-        description: 'Your verification is pending admin review.' 
+        title: 'Documents submitted!', 
+        description: 'Your verification is pending admin review. You will be notified once reviewed.' 
       });
+      
+      // Clear uploaded files
+      setUploadedFiles([]);
     } catch (error: any) {
       toast({ 
         title: 'Upload failed', 
@@ -176,6 +194,7 @@ export default function AgentVerification() {
           icon: CheckCircle,
           color: 'text-accent',
           bg: 'bg-accent/10',
+          border: 'border-accent',
           label: 'Verified',
           description: 'Your account has been verified. You can now list properties.'
         };
@@ -184,15 +203,17 @@ export default function AgentVerification() {
           icon: XCircle,
           color: 'text-destructive',
           bg: 'bg-destructive/10',
+          border: 'border-destructive',
           label: 'Rejected',
-          description: 'Your verification was rejected. Please upload clearer documents.'
+          description: 'Your verification was rejected. Please review the reason and resubmit with clearer documents.'
         };
       default:
         return {
           icon: Clock,
           color: 'text-warning',
           bg: 'bg-warning/10',
-          label: 'Pending',
+          border: 'border-warning',
+          label: 'Pending Review',
           description: 'Your verification is under review. This usually takes 1-2 business days.'
         };
     }
@@ -208,6 +229,7 @@ export default function AgentVerification() {
 
   const statusConfig = getStatusConfig(verification?.verification_status || 'pending');
   const StatusIcon = statusConfig.icon;
+  const hasSubmitted = !!verification?.zip_file_url || !!verification?.submitted_at;
 
   return (
     <div className="min-h-screen bg-secondary/30">
@@ -234,7 +256,7 @@ export default function AgentVerification() {
         </div>
 
         {/* Status Card */}
-        <Card className={`mb-8 border-2 ${statusConfig.bg}`}>
+        <Card className={`mb-8 border-2 ${statusConfig.border} ${statusConfig.bg}`}>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className={`h-14 w-14 rounded-full ${statusConfig.bg} flex items-center justify-center`}>
@@ -254,6 +276,21 @@ export default function AgentVerification() {
           </CardContent>
         </Card>
 
+        {/* Rejection Reason */}
+        {verification?.verification_status === 'rejected' && verification?.rejection_reason && (
+          <Card className="mb-6 border-destructive bg-destructive/5">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+                <div>
+                  <p className="font-semibold text-destructive">Rejection Reason</p>
+                  <p className="text-sm text-muted-foreground mt-1">{verification.rejection_reason}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Profile Info */}
         <Card className="mb-6">
           <CardHeader>
@@ -261,7 +298,7 @@ export default function AgentVerification() {
               <User className="h-5 w-5" />
               Personal Information
             </CardTitle>
-            <CardDescription>This information is from your signup and cannot be changed here.</CardDescription>
+            <CardDescription>This information is from your signup.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
@@ -293,98 +330,160 @@ export default function AgentVerification() {
           </CardContent>
         </Card>
 
-        {/* Document Uploads */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <IdCard className="h-5 w-5" />
-              National ID Card / Slip
-            </CardTitle>
-            <CardDescription>
-              Upload a clear photo of your National ID Card, Voter's Card, or Driver's License
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {governmentIdPreview && (
-                <div className="relative rounded-lg overflow-hidden border bg-muted">
-                  <img 
-                    src={governmentIdPreview} 
-                    alt="Government ID Preview" 
-                    className="w-full h-48 object-contain"
-                  />
-                </div>
-              )}
-              <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
-                <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground">
-                  {governmentIdFile ? governmentIdFile.name : 'Click to upload National ID'}
-                </span>
-                <Input
-                  type="file"
-                  accept="image/*,application/pdf"
-                  onChange={(e) => handleFileChange(e, 'government_id')}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Camera className="h-5 w-5" />
-              Passport Photograph
-            </CardTitle>
-            <CardDescription>
-              Upload a recent passport-sized photograph with clear face visibility
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {passportPhotoPreview && (
-                <div className="relative rounded-lg overflow-hidden border bg-muted flex justify-center">
-                  <img 
-                    src={passportPhotoPreview} 
-                    alt="Passport Photo Preview" 
-                    className="h-48 object-contain"
-                  />
-                </div>
-              )}
-              <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
-                <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground">
-                  {passportPhotoFile ? passportPhotoFile.name : 'Click to upload Passport Photo'}
-                </span>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, 'passport_photo')}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Submit Button */}
+        {/* Document Uploads - Only show if not approved */}
         {verification?.verification_status !== 'approved' && (
-          <Button 
-            onClick={handleSubmit} 
-            className="w-full" 
-            size="lg"
-            disabled={uploading}
-          >
-            {uploading ? (
-              <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Uploading Documents...
-              </>
-            ) : (
-              'Submit for Verification'
+          <>
+            {/* Government ID */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <IdCard className="h-5 w-5" />
+                  Government ID (Required)
+                </CardTitle>
+                <CardDescription>
+                  Upload a clear photo of your National ID Card, Voter's Card, or Driver's License
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
+                  <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                  <span className="text-sm text-muted-foreground">Click to upload Government ID</span>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => handleFileChange(e, 'government_id')}
+                    className="hidden"
+                    multiple
+                  />
+                </label>
+              </CardContent>
+            </Card>
+
+            {/* Passport Photo */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="h-5 w-5" />
+                  Passport Photograph (Required)
+                </CardTitle>
+                <CardDescription>
+                  Upload a recent passport-sized photograph with clear face visibility
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
+                  <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                  <span className="text-sm text-muted-foreground">Click to upload Passport Photo</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, 'passport')}
+                    className="hidden"
+                    multiple
+                  />
+                </label>
+              </CardContent>
+            </Card>
+
+            {/* Other Documents */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileArchive className="h-5 w-5" />
+                  Office/Agency Documents (Optional)
+                </CardTitle>
+                <CardDescription>
+                  Upload any additional documents like business registration, proof of address, etc.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
+                  <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                  <span className="text-sm text-muted-foreground">Click to upload additional documents</span>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => handleFileChange(e, 'other')}
+                    className="hidden"
+                    multiple
+                  />
+                </label>
+              </CardContent>
+            </Card>
+
+            {/* Uploaded Files Preview */}
+            {uploadedFiles.length > 0 && (
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileArchive className="h-5 w-5" />
+                    Uploaded Documents ({uploadedFiles.length})
+                  </CardTitle>
+                  <CardDescription>
+                    These files will be compressed into a single ZIP file before upload
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="relative group">
+                        <div className="aspect-square rounded-lg border bg-muted overflow-hidden">
+                          {file.preview ? (
+                            <img 
+                              src={file.preview} 
+                              alt={file.file.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center p-2">
+                              <FileArchive className="h-8 w-8 text-muted-foreground mb-2" />
+                              <p className="text-xs text-muted-foreground text-center truncate w-full">
+                                {file.file.name}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                        <p className="text-xs text-muted-foreground mt-1 capitalize">{file.type.replace('_', ' ')}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             )}
-          </Button>
+
+            {/* Submit Button */}
+            <Button 
+              onClick={handleSubmit} 
+              className="w-full" 
+              size="lg"
+              disabled={uploading || uploadedFiles.length === 0}
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Creating ZIP & Uploading...
+                </>
+              ) : (
+                <>
+                  <FileArchive className="h-5 w-5 mr-2" />
+                  Submit Documents for Verification
+                </>
+              )}
+            </Button>
+
+            {hasSubmitted && verification?.verification_status === 'pending' && (
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                You have already submitted documents. Uploading new documents will replace the previous submission.
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>

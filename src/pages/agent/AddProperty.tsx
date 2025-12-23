@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
 import { 
   Home, ImagePlus, MapPin, Bed, Bath, DollarSign, 
-  X, Plus, ChevronLeft, Loader2 
+  X, Plus, ChevronLeft, Loader2, AlertTriangle, Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/layout/Navbar';
+import useSWR from 'swr';
 
 const AMENITIES_OPTIONS = [
   'WiFi', 'Air Conditioning', 'Parking', 'Security', 'Water Supply',
@@ -33,6 +34,11 @@ const propertySchema = z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
 });
+
+interface VerificationData {
+  verification_status: 'pending' | 'approved' | 'rejected';
+  agent_id: string | null;
+}
 
 export default function AddProperty() {
   const navigate = useNavigate();
@@ -56,6 +62,21 @@ export default function AddProperty() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Check verification status
+  const { data: verification, isLoading: verificationLoading } = useSWR<VerificationData | null>(
+    profile?.id ? `agent-verification-check-${profile.id}` : null,
+    async () => {
+      const { data } = await supabase
+        .from('agent_verifications')
+        .select('verification_status, agent_id')
+        .eq('user_id', profile!.id)
+        .maybeSingle();
+      return data as VerificationData | null;
+    }
+  );
+
+  const isVerified = verification?.verification_status === 'approved';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -141,6 +162,16 @@ export default function AddProperty() {
       return;
     }
 
+    // Double check verification status
+    if (!isVerified) {
+      toast({ 
+        title: 'Account not verified', 
+        description: 'You need to be verified before adding properties.',
+        variant: 'destructive' 
+      });
+      return;
+    }
+
     const validationData = {
       ...formData,
       price: parseFloat(formData.price) || 0,
@@ -205,6 +236,59 @@ export default function AddProperty() {
       setLoading(false);
     }
   };
+
+  // Show loading state
+  if (verificationLoading) {
+    return (
+      <div className="min-h-screen bg-secondary/30 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show verification required message if not verified
+  if (!isVerified) {
+    return (
+      <div className="min-h-screen bg-secondary/30">
+        <Navbar />
+        
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/agent')}
+            className="mb-6"
+          >
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+
+          <Card className="border-warning bg-warning/5">
+            <CardContent className="py-12 text-center">
+              <div className="h-16 w-16 rounded-full bg-warning/20 flex items-center justify-center mx-auto mb-6">
+                <AlertTriangle className="h-8 w-8 text-warning" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Account Pending Verification</h2>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                You need to complete the verification process before you can add property listings.
+                This helps us maintain trust and prevent fraudulent listings.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button asChild>
+                  <Link to="/agent/verification">
+                    <Shield className="h-5 w-5 mr-2" />
+                    Complete Verification
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/agent">Back to Dashboard</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-secondary/30">
@@ -477,49 +561,22 @@ export default function AddProperty() {
                   </label>
                 )}
               </div>
-              <p className="mt-4 text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-4">
                 Upload up to 10 images. First image will be the cover photo.
               </p>
             </CardContent>
           </Card>
 
-          {/* Contact Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-secondary/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground mb-2">WhatsApp Number</p>
-                <p className="font-semibold text-lg">{profile?.phone || 'Not set'}</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  This is your registered phone number. Students will contact you via WhatsApp.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Submit */}
-          <div className="flex gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/agent')}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button type="submit" className="flex-1" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                'Submit for Approval'
-              )}
-            </Button>
-          </div>
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Uploading & Creating...
+              </>
+            ) : (
+              'Submit Property for Approval'
+            )}
+          </Button>
         </form>
       </div>
     </div>
