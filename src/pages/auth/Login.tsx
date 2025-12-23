@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/auth';
+import { useAuth, getDashboardRoute } from '@/lib/auth';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -39,7 +39,7 @@ export default function Login() {
     }
 
     setLoading(true);
-    const { error } = await signIn(email, password);
+    const { error, role } = await signIn(email, password);
     setLoading(false);
 
     if (error) {
@@ -52,7 +52,7 @@ export default function Login() {
     }
 
     toast({ title: 'Welcome back!', description: 'You have been logged in successfully.' });
-    navigate('/dashboard');
+    navigate(getDashboardRoute(role));
   };
 
   return (
