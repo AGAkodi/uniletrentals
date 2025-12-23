@@ -6,21 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
-import { DashboardSidebar, SidebarItem } from '@/components/dashboard/DashboardSidebar';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 import { PropertyGrid } from '@/components/property/PropertyGrid';
 import { Property } from '@/types/database';
-
-const studentNavItems: SidebarItem[] = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: User, label: 'Profile', href: '/student/profile' },
-  { icon: Home, label: 'Browse Listings', href: '/search' },
-  { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
-  { icon: Users, label: 'Shared Rental Space', href: '/student/shared' },
-  { icon: GitCompare, label: 'Compare Listings', href: '/student/compare' },
-  { icon: FileText, label: 'Blog', href: '/student/blog' },
-];
 
 export default function StudentDashboard() {
   const { profile } = useAuth();
@@ -81,15 +70,6 @@ export default function StudentDashboard() {
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
-      
-      <DashboardSidebar 
-        items={studentNavItems}
-        userInfo={{
-          name: profile?.full_name || 'Student',
-          subtitle: 'Student Account',
-          avatarUrl: profile?.avatar_url || undefined,
-        }}
-      />
 
       <main className="pt-8 px-6 md:px-8 lg:px-12">
         <div className="max-w-6xl mx-auto">

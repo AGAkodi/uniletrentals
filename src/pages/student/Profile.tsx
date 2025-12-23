@@ -7,20 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
-import { DashboardSidebar, SidebarItem } from '@/components/dashboard/DashboardSidebar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Home, Heart, Users, GitCompare, FileText } from 'lucide-react';
-
-const studentNavItems: SidebarItem[] = [
-  { icon: User, label: 'Profile', href: '/student/profile' },
-  { icon: Home, label: 'Browse Listings', href: '/dashboard' },
-  { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
-  { icon: Users, label: 'Shared Rental Space', href: '/student/shared' },
-  { icon: GitCompare, label: 'Compare Listings', href: '/student/compare' },
-  { icon: FileText, label: 'Blog', href: '/student/blog' },
-];
 
 export default function StudentProfile() {
   const { profile, user } = useAuth();
@@ -100,15 +89,6 @@ export default function StudentProfile() {
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
-      
-      <DashboardSidebar 
-        items={studentNavItems}
-        userInfo={{
-          name: profile?.full_name || 'Student',
-          subtitle: 'Student Account',
-          avatarUrl: avatarPreview || profile?.avatar_url || undefined,
-        }}
-      />
 
       <main className="pt-8 px-6 md:px-8 lg:px-12">
         <div className="max-w-2xl mx-auto">

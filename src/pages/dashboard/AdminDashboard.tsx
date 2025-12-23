@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
-import { DashboardSidebar, SidebarItem } from '@/components/dashboard/DashboardSidebar';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -61,27 +60,9 @@ export default function AdminDashboard() {
     return data;
   });
 
-  const adminNavItems: SidebarItem[] = [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
-    { icon: User, label: 'Profile', href: '/admin/profile' },
-    { icon: Shield, label: 'Agent Review', href: '/admin/verify-agents', badge: stats?.pendingAgents },
-    { icon: FileCheck, label: 'Listing Approval', href: '/admin/approve-listings', badge: stats?.pendingListings },
-    { icon: Flag, label: 'Disputes', href: '/admin/reports', badge: stats?.pendingReports },
-    { icon: FileText, label: 'Create Blog', href: '/admin/blog' },
-  ];
-
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
-      
-      <DashboardSidebar 
-        items={adminNavItems}
-        userInfo={{
-          name: profile?.full_name || 'Admin',
-          subtitle: 'Administrator',
-          avatarUrl: profile?.avatar_url || undefined,
-        }}
-      />
 
       <main className="pt-8 px-6 md:px-8 lg:px-12">
         <div className="max-w-7xl mx-auto">

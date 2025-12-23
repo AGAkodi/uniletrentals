@@ -1,21 +1,11 @@
-import { Calendar, Building2, Loader2, MessageCircle, User, Home, Heart, Users, GitCompare, FileText } from 'lucide-react';
+import { Calendar, Building2, Loader2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
-import { DashboardSidebar, SidebarItem } from '@/components/dashboard/DashboardSidebar';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
-
-const studentNavItems: SidebarItem[] = [
-  { icon: User, label: 'Profile', href: '/student/profile' },
-  { icon: Home, label: 'Browse Listings', href: '/dashboard' },
-  { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
-  { icon: Users, label: 'Shared Rental Space', href: '/student/shared' },
-  { icon: GitCompare, label: 'Compare Listings', href: '/student/compare' },
-  { icon: FileText, label: 'Blog', href: '/student/blog' },
-];
 
 const statusColors: Record<string, string> = {
   pending: 'bg-warning/10 text-warning border-warning/30',
@@ -102,15 +92,6 @@ export default function MyBookings() {
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
-      
-      <DashboardSidebar 
-        items={studentNavItems}
-        userInfo={{
-          name: profile?.full_name || 'Student',
-          subtitle: 'Student Account',
-          avatarUrl: profile?.avatar_url || undefined,
-        }}
-      />
 
       <main className="pt-8 px-6 md:px-8 lg:px-12">
         <div className="max-w-4xl mx-auto">
