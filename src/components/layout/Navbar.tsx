@@ -25,14 +25,14 @@ const studentMenuItems = [
 ];
 
 const agentMenuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/agent/dashboard' },
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/agent' },
   { icon: Building2, label: 'Add Property', href: '/agent/add-property' },
   { icon: CheckCircle, label: 'Verification', href: '/agent/verification' },
   { icon: User, label: 'Profile', href: '/agent/profile' },
 ];
 
 const adminMenuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
   { icon: CheckCircle, label: 'Approve Listings', href: '/admin/approve-listings' },
   { icon: Shield, label: 'Verify Agents', href: '/admin/verify-agents' },
   { icon: AlertTriangle, label: 'Reports', href: '/admin/reports' },
