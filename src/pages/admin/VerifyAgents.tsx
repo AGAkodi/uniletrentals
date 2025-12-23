@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ChevronLeft, Shield, CheckCircle, XCircle, Clock, 
-  User, Building2, MapPin, FileText, Eye, Loader2
+  User, Building2, MapPin, FileText, Eye, Loader2, Download, FileArchive, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Navbar } from '@/components/layout/Navbar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import useSWR, { mutate } from 'swr';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,9 +23,12 @@ interface AgentVerification {
   office_address: string | null;
   government_id_url: string | null;
   passport_photo_url: string | null;
+  zip_file_url: string | null;
   verification_status: 'pending' | 'approved' | 'rejected';
+  rejection_reason: string | null;
   agent_id: string | null;
   created_at: string;
+  submitted_at: string | null;
   user: {
     id: string;
     full_name: string;
@@ -39,6 +43,7 @@ export default function VerifyAgents() {
   const [selectedAgent, setSelectedAgent] = useState<AgentVerification | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: pendingAgents, isLoading } = useSWR<AgentVerification[]>(
     'all-pending-agents',
@@ -47,12 +52,22 @@ export default function VerifyAgents() {
         .from('agent_verifications')
         .select('*, user:profiles!agent_verifications_user_id_fkey(*)')
         .eq('verification_status', 'pending')
-        .order('created_at', { ascending: false });
+        .order('submitted_at', { ascending: false, nullsFirst: false });
       
       if (error) throw error;
       return data as AgentVerification[];
     }
   );
+
+  const handleDownloadZip = (zipUrl: string, agentName: string) => {
+    const link = document.createElement('a');
+    link.href = zipUrl;
+    link.download = `${agentName.replace(/\s+/g, '_')}_verification_docs.zip`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleApprove = async (agent: AgentVerification) => {
     if (!profile) return;
@@ -74,17 +89,24 @@ export default function VerifyAgents() {
 
       if (error) throw error;
 
-      // Create notification for agent
-      await supabase.from('notifications').insert({
-        user_id: agent.user_id,
-        title: 'Verification Approved!',
-        message: `Congratulations! Your agent verification has been approved. Your Agent ID is ${agentIdData}. You can now list properties.`,
-        type: 'success',
-      });
+      // Send email notification via edge function
+      try {
+        await supabase.functions.invoke('send-verification-email', {
+          body: {
+            email: agent.user?.email,
+            name: agent.user?.full_name,
+            status: 'approved',
+            agentId: agentIdData,
+          }
+        });
+      } catch (emailError) {
+        console.log('Email notification failed, but verification was successful');
+      }
 
       toast({ title: 'Agent approved!', description: `Agent ID: ${agentIdData}` });
       mutate('all-pending-agents');
       mutate('admin-stats');
+      setDialogOpen(false);
       setSelectedAgent(null);
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -95,6 +117,16 @@ export default function VerifyAgents() {
 
   const handleReject = async (agent: AgentVerification) => {
     if (!profile) return;
+    
+    if (!rejectionReason.trim()) {
+      toast({ 
+        title: 'Rejection reason required', 
+        description: 'Please provide a reason for rejecting this agent.',
+        variant: 'destructive' 
+      });
+      return;
+    }
+
     setProcessing(agent.id);
 
     try {
@@ -102,6 +134,7 @@ export default function VerifyAgents() {
         .from('agent_verifications')
         .update({
           verification_status: 'rejected',
+          rejection_reason: rejectionReason,
           verified_at: new Date().toISOString(),
           verified_by: profile.id,
         })
@@ -109,17 +142,24 @@ export default function VerifyAgents() {
 
       if (error) throw error;
 
-      // Create notification for agent
-      await supabase.from('notifications').insert({
-        user_id: agent.user_id,
-        title: 'Verification Rejected',
-        message: rejectionReason || 'Your verification was rejected. Please upload clearer documents and try again.',
-        type: 'error',
-      });
+      // Send email notification via edge function
+      try {
+        await supabase.functions.invoke('send-verification-email', {
+          body: {
+            email: agent.user?.email,
+            name: agent.user?.full_name,
+            status: 'rejected',
+            rejectionReason: rejectionReason,
+          }
+        });
+      } catch (emailError) {
+        console.log('Email notification failed, but rejection was recorded');
+      }
 
-      toast({ title: 'Agent rejected' });
+      toast({ title: 'Agent rejected', description: 'The agent has been notified.' });
       mutate('all-pending-agents');
       mutate('admin-stats');
+      setDialogOpen(false);
       setSelectedAgent(null);
       setRejectionReason('');
     } catch (error: any) {
@@ -182,16 +222,16 @@ export default function VerifyAgents() {
                           </div>
                         )}
                         <div className="flex gap-2 mt-3">
-                          {agent.government_id_url && (
-                            <Badge variant="outline" className="gap-1">
-                              <FileText className="h-3 w-3" />
-                              ID Uploaded
+                          {agent.zip_file_url && (
+                            <Badge variant="default" className="gap-1 bg-accent">
+                              <FileArchive className="h-3 w-3" />
+                              Documents Uploaded
                             </Badge>
                           )}
-                          {agent.passport_photo_url && (
+                          {agent.submitted_at && (
                             <Badge variant="outline" className="gap-1">
-                              <User className="h-3 w-3" />
-                              Photo Uploaded
+                              <Clock className="h-3 w-3" />
+                              {new Date(agent.submitted_at).toLocaleDateString()}
                             </Badge>
                           )}
                         </div>
@@ -199,12 +239,31 @@ export default function VerifyAgents() {
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <Dialog>
+                      {agent.zip_file_url && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDownloadZip(agent.zip_file_url!, agent.user?.full_name || 'agent')}
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          Download ZIP
+                        </Button>
+                      )}
+                      <Dialog open={dialogOpen && selectedAgent?.id === agent.id} onOpenChange={(open) => {
+                        setDialogOpen(open);
+                        if (!open) {
+                          setSelectedAgent(null);
+                          setRejectionReason('');
+                        }
+                      }}>
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => setSelectedAgent(agent)}
+                            onClick={() => {
+                              setSelectedAgent(agent);
+                              setDialogOpen(true);
+                            }}
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             Review
@@ -240,9 +299,55 @@ export default function VerifyAgents() {
                               <p className="font-medium">{agent.office_address || 'N/A'}</p>
                             </div>
 
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">Signup Date</p>
+                              <p className="font-medium">{new Date(agent.created_at).toLocaleString()}</p>
+                            </div>
+
+                            {agent.submitted_at && (
+                              <div>
+                                <p className="text-sm text-muted-foreground mb-1">Documents Submitted</p>
+                                <p className="font-medium">{new Date(agent.submitted_at).toLocaleString()}</p>
+                              </div>
+                            )}
+
+                            {/* ZIP File Download */}
+                            {agent.zip_file_url ? (
+                              <div className="p-4 bg-accent/10 rounded-lg border border-accent/20">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <FileArchive className="h-8 w-8 text-accent" />
+                                    <div>
+                                      <p className="font-medium">Verification Documents</p>
+                                      <p className="text-sm text-muted-foreground">ZIP archive with all uploaded documents</p>
+                                    </div>
+                                  </div>
+                                  <Button 
+                                    onClick={() => handleDownloadZip(agent.zip_file_url!, agent.user?.full_name || 'agent')}
+                                  >
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Download
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="p-4 bg-warning/10 rounded-lg border border-warning/20">
+                                <div className="flex items-center gap-3">
+                                  <AlertTriangle className="h-6 w-6 text-warning" />
+                                  <div>
+                                    <p className="font-medium text-warning">No Documents Uploaded</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      This agent has not uploaded verification documents yet.
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Legacy image previews for backwards compatibility */}
                             {agent.government_id_url && (
                               <div>
-                                <p className="text-sm text-muted-foreground mb-2">Government ID</p>
+                                <p className="text-sm text-muted-foreground mb-2">Government ID (Legacy)</p>
                                 <img 
                                   src={agent.government_id_url} 
                                   alt="Government ID" 
@@ -253,7 +358,7 @@ export default function VerifyAgents() {
 
                             {agent.passport_photo_url && (
                               <div>
-                                <p className="text-sm text-muted-foreground mb-2">Passport Photo</p>
+                                <p className="text-sm text-muted-foreground mb-2">Passport Photo (Legacy)</p>
                                 <img 
                                   src={agent.passport_photo_url} 
                                   alt="Passport Photo" 
@@ -262,27 +367,35 @@ export default function VerifyAgents() {
                               </div>
                             )}
 
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-2">Rejection Reason (optional)</p>
+                            <div className="space-y-2">
+                              <Label htmlFor="rejectionReason" className="flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4 text-destructive" />
+                                Rejection Reason (Required for rejection)
+                              </Label>
                               <Textarea
-                                placeholder="Enter reason if rejecting..."
+                                id="rejectionReason"
+                                placeholder="Enter a clear reason if you are rejecting this agent..."
                                 value={rejectionReason}
                                 onChange={(e) => setRejectionReason(e.target.value)}
+                                className="min-h-[100px]"
                               />
+                              <p className="text-xs text-muted-foreground">
+                                This message will be sent to the agent via email and shown in their dashboard.
+                              </p>
                             </div>
 
                             <div className="flex gap-3">
                               <Button 
                                 className="flex-1" 
                                 onClick={() => handleApprove(agent)}
-                                disabled={processing === agent.id}
+                                disabled={processing === agent.id || !agent.zip_file_url}
                               >
                                 {processing === agent.id ? (
                                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                 ) : (
                                   <CheckCircle className="h-4 w-4 mr-2" />
                                 )}
-                                Approve Agent
+                                Verify Agent
                               </Button>
                               <Button 
                                 variant="destructive" 
@@ -295,7 +408,7 @@ export default function VerifyAgents() {
                                 ) : (
                                   <XCircle className="h-4 w-4 mr-2" />
                                 )}
-                                Reject
+                                Reject Agent
                               </Button>
                             </div>
                           </div>

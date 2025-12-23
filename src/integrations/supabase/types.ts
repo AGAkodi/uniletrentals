@@ -24,6 +24,8 @@ export type Database = {
           office_address: string | null
           passport_photo_url: string | null
           proof_of_ownership_url: string | null
+          rejection_reason: string | null
+          submitted_at: string | null
           updated_at: string | null
           user_id: string
           verification_status:
@@ -31,6 +33,7 @@ export type Database = {
             | null
           verified_at: string | null
           verified_by: string | null
+          zip_file_url: string | null
         }
         Insert: {
           agent_id?: string | null
@@ -41,6 +44,8 @@ export type Database = {
           office_address?: string | null
           passport_photo_url?: string | null
           proof_of_ownership_url?: string | null
+          rejection_reason?: string | null
+          submitted_at?: string | null
           updated_at?: string | null
           user_id: string
           verification_status?:
@@ -48,6 +53,7 @@ export type Database = {
             | null
           verified_at?: string | null
           verified_by?: string | null
+          zip_file_url?: string | null
         }
         Update: {
           agent_id?: string | null
@@ -58,6 +64,8 @@ export type Database = {
           office_address?: string | null
           passport_photo_url?: string | null
           proof_of_ownership_url?: string | null
+          rejection_reason?: string | null
+          submitted_at?: string | null
           updated_at?: string | null
           user_id?: string
           verification_status?:
@@ -65,6 +73,7 @@ export type Database = {
             | null
           verified_at?: string | null
           verified_by?: string | null
+          zip_file_url?: string | null
         }
         Relationships: [
           {
