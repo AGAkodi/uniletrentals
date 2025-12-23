@@ -3,13 +3,26 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile, UserRole } from '@/types/database';
 
+// Helper function to get dashboard route based on role
+export function getDashboardRoute(role: UserRole | undefined): string {
+  switch (role) {
+    case 'admin':
+      return '/admin';
+    case 'agent':
+      return '/agent';
+    case 'student':
+    default:
+      return '/dashboard';
+  }
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
   signUp: (email: string, password: string, metadata: Record<string, unknown>) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; role?: UserRole }>;
   signOut: () => Promise<void>;
   isRole: (role: UserRole) => boolean;
 }
@@ -91,7 +104,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     });
     
-    return { error: error as Error | null };
+    if (error) {
+      return { error: error as Error | null };
+    }
+    
+    // Fetch the user's profile to get their role
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      return { error: null, role: profileData?.role as UserRole | undefined };
+    }
+    
+    return { error: null };
   };
 
   const signOut = async () => {
