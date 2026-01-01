@@ -48,12 +48,13 @@ export function Navbar() {
 
   // Get menu items based on role
   const getMenuItems = () => {
-    if (!profile) return studentMenuItems;
+    if (!profile?.role) return studentMenuItems;
     switch (profile.role) {
       case 'admin':
         return adminMenuItems;
       case 'agent':
         return agentMenuItems;
+      case 'student':
       default:
         return studentMenuItems;
     }

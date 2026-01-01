@@ -74,7 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
       
       if (!error && data) {
+        console.log('Fetched profile:', data.email, 'role:', data.role);
         setProfile(data as Profile);
+      } else if (error) {
+        console.error('Error fetching profile:', error);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
