@@ -28,7 +28,7 @@ function StudentDashboardContent() {
     }
   );
 
-  const { data: savedPropertyIds } = useSWR(
+  const { data: savedPropertyIds, mutate: mutateSaved } = useSWR(
     profile?.id ? `saved-ids-${profile.id}` : null,
     async () => {
       const { data } = await supabase
@@ -55,6 +55,13 @@ function StudentDashboardContent() {
     
     const isSaved = savedPropertyIds?.includes(propertyId);
     
+    // Optimistic update
+    const newSavedIds = isSaved
+      ? savedPropertyIds?.filter(id => id !== propertyId) || []
+      : [...(savedPropertyIds || []), propertyId];
+    
+    mutateSaved(newSavedIds, false);
+    
     if (isSaved) {
       await supabase
         .from('saved_properties')
@@ -66,6 +73,9 @@ function StudentDashboardContent() {
         .from('saved_properties')
         .insert({ user_id: profile.id, property_id: propertyId });
     }
+    
+    // Revalidate to sync with server
+    mutateSaved();
   };
 
   return (

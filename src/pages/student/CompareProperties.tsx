@@ -57,10 +57,11 @@ export default function CompareProperties() {
   const compareFields = [
     { label: 'Price', key: 'price', format: (p: Property) => formatPrice(p.price, p.currency || 'NGN') + '/year' },
     { label: 'Location', key: 'location', format: (p: Property) => `${p.city}${p.state ? `, ${p.state}` : ''}` },
+    { label: 'Address', key: 'address', format: (p: Property) => p.address },
     { label: 'Bedrooms', key: 'bedrooms', format: (p: Property) => p.bedrooms || 1 },
     { label: 'Bathrooms', key: 'bathrooms', format: (p: Property) => p.bathrooms || 1 },
-    { label: 'Address', key: 'address', format: (p: Property) => p.address },
-    { label: 'Amenities', key: 'amenities', format: (p: Property) => p.amenities?.length || 0 },
+    { label: 'Amenities', key: 'amenities', format: (p: Property) => (p.amenities && p.amenities.length > 0) ? p.amenities.join(', ') : 'None listed' },
+    { label: 'Agent', key: 'agent', format: (p: Property) => p.agent?.full_name || 'Unknown' },
     { label: 'Agent Verified', key: 'verified', format: (p: Property) => p.agent ? 'Yes' : 'No' },
   ];
 
