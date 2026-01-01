@@ -114,12 +114,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fetch the user's profile to get their role
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .maybeSingle();
       
+      if (profileError) {
+        console.error('Error fetching profile on login:', profileError);
+      }
+      
+      console.log('Login successful, user role:', profileData?.role);
       return { error: null, role: profileData?.role as UserRole | undefined };
     }
     
