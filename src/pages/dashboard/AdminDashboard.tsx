@@ -136,6 +136,51 @@ function AdminDashboardContent() {
             </Card>
           </div>
 
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <Link to="/admin/verify-agents">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center">
+                    <Shield className="h-6 w-6 text-warning" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Verify Agents</p>
+                    <p className="text-sm text-muted-foreground">{stats?.pendingAgents || 0} pending</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            
+            <Link to="/admin/approve-listings">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                    <FileCheck className="h-6 w-6 text-accent" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Approve Listings</p>
+                    <p className="text-sm text-muted-foreground">{stats?.pendingListings || 0} pending</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            
+            <Link to="/admin/manage-admins">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <User className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Manage Admins</p>
+                    <p className="text-sm text-muted-foreground">Add or remove admins</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Pending Agent Verifications */}
             <Card>
