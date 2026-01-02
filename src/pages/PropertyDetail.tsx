@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
   MapPin, Bed, Bath, Heart, Share2, Flag, CheckCircle, 
-  Star, MessageCircle, Calendar, ChevronLeft, ChevronRight, ExternalLink
+  Star, MessageCircle, Calendar, ChevronLeft, ChevronRight, ExternalLink, Lock
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AgentProfilePopup } from '@/components/property/AgentProfilePopup';
+import { BookingDialog } from '@/components/property/BookingDialog';
+
 export default function PropertyDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: property, isLoading } = useProperty(id || '');
@@ -21,6 +23,22 @@ export default function PropertyDetail() {
   const { toast } = useToast();
   const [currentImage, setCurrentImage] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
+  const [hasBooked, setHasBooked] = useState(false);
+
+  // Check if user has already booked this property
+  useEffect(() => {
+    const checkBooking = async () => {
+      if (!user || !id) return;
+      const { data } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('property_id', id)
+        .maybeSingle();
+      setHasBooked(!!data);
+    };
+    checkBooking();
+  }, [user, id]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -293,21 +311,47 @@ export default function PropertyDetail() {
                   <span className="text-sm text-muted-foreground">(5.0)</span>
                 </div>
 
-                <Button 
-                  variant="whatsapp" 
-                  className="w-full" 
-                  size="lg"
-                  onClick={handleWhatsApp}
-                  disabled={!property.whatsapp_number}
-                >
-                  <MessageCircle className="h-5 w-5" />
-                  Contact on WhatsApp
-                </Button>
+                {hasBooked ? (
+                  <Button 
+                    variant="whatsapp" 
+                    className="w-full" 
+                    size="lg"
+                    onClick={handleWhatsApp}
+                    disabled={!property.whatsapp_number}
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                    Contact on WhatsApp
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    size="lg"
+                    disabled
+                  >
+                    <Lock className="h-5 w-5" />
+                    Book first to contact
+                  </Button>
+                )}
 
-                <Button variant="outline" className="w-full" size="lg">
-                  <Calendar className="h-5 w-5" />
-                  Book Inspection
-                </Button>
+                {hasBooked ? (
+                  <div className="text-center text-sm text-accent">
+                    <CheckCircle className="h-4 w-4 inline mr-1" />
+                    Inspection booked
+                  </div>
+                ) : (
+                  <BookingDialog
+                    propertyId={property.id}
+                    agentId={property.agent_id}
+                    propertyTitle={property.title}
+                    onBookingComplete={() => setHasBooked(true)}
+                  >
+                    <Button variant="default" className="w-full" size="lg">
+                      <Calendar className="h-5 w-5" />
+                      Book Inspection
+                    </Button>
+                  </BookingDialog>
+                )}
               </CardContent>
             </Card>
           </div>
