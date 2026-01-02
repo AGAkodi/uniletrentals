@@ -570,6 +570,85 @@ export type Database = {
           },
         ]
       }
+      shared_rental_interests: {
+        Row: {
+          created_at: string
+          id: string
+          interested_student_id: string
+          shared_rental_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interested_student_id: string
+          shared_rental_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interested_student_id?: string
+          shared_rental_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_rental_interests_shared_rental_id_fkey"
+            columns: ["shared_rental_id"]
+            isOneToOne: false
+            referencedRelation: "shared_rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shared_rentals: {
+        Row: {
+          created_at: string
+          description: string | null
+          gender_preference: string
+          host_student_id: string
+          id: string
+          move_in_date: string | null
+          property_id: string
+          rent_split: number
+          status: string
+          total_rent: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          gender_preference: string
+          host_student_id: string
+          id?: string
+          move_in_date?: string | null
+          property_id: string
+          rent_split: number
+          status?: string
+          total_rent: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          gender_preference?: string
+          host_student_id?: string
+          id?: string
+          move_in_date?: string | null
+          property_id?: string
+          rent_split?: number
+          status?: string
+          total_rent?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_rentals_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string

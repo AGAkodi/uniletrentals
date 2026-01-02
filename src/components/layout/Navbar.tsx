@@ -19,7 +19,7 @@ const studentMenuItems = [
   { icon: User, label: 'Profile', href: '/student/profile' },
   { icon: Search, label: 'Browse Listings', href: '/search' },
   { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
-  { icon: Users, label: 'Shared Rental Space', href: '/student/shared-rentals' },
+  { icon: Users, label: 'Shared Rental Space', href: '/student/shared' },
   { icon: GitCompare, label: 'Compare Listings', href: '/student/compare' },
   { icon: FileText, label: 'Blog', href: '/student/blog' },
 ];
@@ -35,6 +35,7 @@ const adminMenuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
   { icon: CheckCircle, label: 'Approve Listings', href: '/admin/approve-listings' },
   { icon: Shield, label: 'Verify Agents', href: '/admin/verify-agents' },
+  { icon: Users, label: 'Shared Rentals', href: '/admin/shared-rentals' },
   { icon: AlertTriangle, label: 'Reports', href: '/admin/reports' },
   { icon: Users, label: 'Manage Admins', href: '/admin/manage-admins' },
   { icon: User, label: 'Profile', href: '/admin/profile' },

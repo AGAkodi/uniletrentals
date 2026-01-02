@@ -151,3 +151,29 @@ export interface SearchFilters {
   bathrooms?: number;
   amenities?: string[];
 }
+
+export type GenderPreference = 'male' | 'female' | 'any';
+
+export interface SharedRental {
+  id: string;
+  property_id: string;
+  host_student_id: string;
+  gender_preference: GenderPreference;
+  total_rent: number;
+  rent_split: number;
+  description: string | null;
+  move_in_date: string | null;
+  status: 'active' | 'archived';
+  created_at: string;
+  updated_at: string;
+  property?: Property;
+  host_student?: Profile;
+}
+
+export interface SharedRentalInterest {
+  id: string;
+  shared_rental_id: string;
+  interested_student_id: string;
+  created_at: string;
+  interested_student?: Profile;
+}
