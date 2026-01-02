@@ -152,23 +152,23 @@ export function SharedRentalCard({
   };
 
   return (
-    <Card className="overflow-hidden group hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden group border-0 shadow-card card-hover">
       <Link to={`/property/${property.id}`}>
-        <div className="relative aspect-[4/3]">
+        <div className="relative aspect-[4/3] overflow-hidden">
           <img
             src={imageUrl}
             alt={property.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover img-zoom"
           />
-          <Badge className="absolute top-3 left-3 bg-primary">
+          <Badge className="absolute top-3 left-3 bg-primary transition-transform duration-200 group-hover:scale-105">
             Shared Rental
           </Badge>
           <div className="absolute top-3 right-3 flex flex-col gap-1">
-            <Badge className="bg-secondary text-secondary-foreground">
+            <Badge className="bg-secondary text-secondary-foreground transition-transform duration-200 group-hover:scale-105">
               {getGenderLabel(sharedRental.gender_preference)}
             </Badge>
             {sharedRental.religion_preference && sharedRental.religion_preference !== 'any' && (
-              <Badge className="bg-secondary text-secondary-foreground">
+              <Badge className="bg-secondary text-secondary-foreground transition-transform duration-200 group-hover:scale-105">
                 {getReligionLabel(sharedRental.religion_preference)}
               </Badge>
             )}
@@ -178,20 +178,20 @@ export function SharedRentalCard({
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <Link to={`/property/${property.id}`}>
-            <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors">
+            <h3 className="font-display font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors duration-200">
               {property.title}
             </h3>
           </Link>
           {property.agent && (
-            <Badge variant="outline" className="shrink-0 text-xs">
-              <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
+            <Badge variant="outline" className="shrink-0 text-xs transition-colors duration-200">
+              <CheckCircle className="icon-sm text-success mr-1" />
               Verified Agent
             </Badge>
           )}
         </div>
 
-        <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
-          <MapPin className="h-4 w-4 shrink-0" />
+        <div className="flex items-center gap-1.5 text-muted-foreground text-sm mb-3">
+          <MapPin className="icon-sm icon-muted" />
           <span className="line-clamp-1">{property.city}</span>
         </div>
 
@@ -216,8 +216,8 @@ export function SharedRentalCard({
         )}
 
         {sharedRental.move_in_date && (
-          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-            <Calendar className="h-4 w-4" />
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
+            <Calendar className="icon-sm icon-muted" />
             <span>Move-in: {format(new Date(sharedRental.move_in_date), 'MMM d, yyyy')}</span>
           </div>
         )}
@@ -245,41 +245,41 @@ export function SharedRentalCard({
           {isOwner ? (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="w-full" disabled={isRemoving}>
+                <Button variant="destructive" className="w-full btn-hover" disabled={isRemoving}>
                   {isRemoving ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <Loader2 className="icon-sm animate-spin mr-2" />
                   ) : (
-                    <Trash2 className="h-4 w-4 mr-2" />
+                    <Trash2 className="icon-sm mr-2" />
                   )}
                   Remove Listing
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="animate-scale-in">
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Remove Shared Rental?</AlertDialogTitle>
+                  <AlertDialogTitle className="font-display">Remove Shared Rental?</AlertDialogTitle>
                   <AlertDialogDescription>
                     This will remove your shared rental listing. The original property listing will remain unchanged.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleRemoveListing}>
+                  <AlertDialogCancel className="btn-hover">Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleRemoveListing} className="btn-hover">
                     Remove
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           ) : hasExpressedInterest ? (
-            <Button variant="outline" className="w-full" onClick={handleContactViaWhatsApp}>
-              <MessageCircle className="h-4 w-4 mr-2" />
+            <Button variant="outline" className="w-full btn-hover" onClick={handleContactViaWhatsApp}>
+              <MessageCircle className="icon-sm mr-2" />
               Contact Host
             </Button>
           ) : (
-            <Button className="w-full" onClick={handleExpressInterest} disabled={isInteresting}>
+            <Button className="w-full btn-hover" onClick={handleExpressInterest} disabled={isInteresting}>
               {isInteresting ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="icon-sm animate-spin mr-2" />
               ) : (
-                <Users className="h-4 w-4 mr-2" />
+                <Users className="icon-sm mr-2" />
               )}
               Interested
             </Button>
