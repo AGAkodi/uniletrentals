@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Lock, Camera, Save, ArrowLeft } from 'lucide-react';
+import { Mail, Phone, Lock, Save, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,10 +9,10 @@ import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { AvatarUpload } from '@/components/profile/AvatarUpload';
 
 export default function AdminProfile() {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState(profile?.email || '');
@@ -22,12 +22,9 @@ export default function AdminProfile() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setAvatarFile(file);
-      setAvatarPreview(URL.createObjectURL(file));
-    }
+  const handleAvatarChange = (file: File) => {
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
   };
 
   const handleSaveProfile = async () => {
@@ -78,6 +75,11 @@ export default function AdminProfile() {
         setNewPassword('');
       }
 
+      // Refresh profile in auth context so avatar updates everywhere
+      await refreshProfile();
+      setAvatarFile(null);
+      setAvatarPreview(null);
+
       toast.success('Profile updated successfully');
     } catch (error: any) {
       toast.error(error.message || 'Failed to update profile');
@@ -103,23 +105,12 @@ export default function AdminProfile() {
           <Card className="mb-6">
             <CardContent className="pt-6">
               <div className="flex items-center gap-6">
-                <div className="relative">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src={avatarPreview || profile?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                      {profile?.full_name?.charAt(0) || 'A'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <label className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-primary flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors">
-                    <Camera className="h-4 w-4 text-primary-foreground" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarChange}
-                    />
-                  </label>
-                </div>
+                <AvatarUpload
+                  currentAvatarUrl={profile?.avatar_url}
+                  fallbackText={profile?.full_name?.charAt(0) || 'A'}
+                  onAvatarChange={handleAvatarChange}
+                  previewUrl={avatarPreview}
+                />
                 <div>
                   <h2 className="text-xl font-semibold">{profile?.full_name}</h2>
                   <p className="text-muted-foreground">Upload your passport photograph</p>
