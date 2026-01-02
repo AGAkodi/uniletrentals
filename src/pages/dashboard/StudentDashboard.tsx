@@ -90,11 +90,11 @@ function StudentDashboardContent() {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card>
+            <Card className="card-hover">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Heart className="h-6 w-6 text-primary" />
+                    <Heart className="icon-lg icon-primary" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{savedPropertyIds?.length || 0}</p>
@@ -104,11 +104,11 @@ function StudentDashboardContent() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="card-hover">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                    <Calendar className="h-6 w-6 text-accent" />
+                    <Calendar className="icon-lg icon-accent" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{bookingsCount}</p>
@@ -118,11 +118,11 @@ function StudentDashboardContent() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="card-hover">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-info/10 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-info" />
+                    <Users className="icon-lg icon-info" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">New</p>
@@ -132,11 +132,11 @@ function StudentDashboardContent() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="card-hover">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center">
-                    <GitCompare className="h-6 w-6 text-warning" />
+                    <GitCompare className="icon-lg icon-warning" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">Compare</p>
@@ -153,7 +153,7 @@ function StudentDashboardContent() {
               <CardTitle>Browse Listings</CardTitle>
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/search">
-                  View All <ChevronRight className="h-4 w-4 ml-1" />
+                  View All <ChevronRight className="icon-sm ml-1" />
                 </Link>
               </Button>
             </CardHeader>
@@ -165,8 +165,8 @@ function StudentDashboardContent() {
                   onSave={handleSaveToggle}
                 />
               ) : (
-                <div className="text-center py-12">
-                  <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <div className="text-center py-12">
+                  <Building2 className="icon-xl mx-auto icon-muted mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No properties available</h3>
                   <p className="text-muted-foreground mb-4">Check back soon for new listings!</p>
                   <Button asChild>

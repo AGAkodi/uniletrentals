@@ -44,8 +44,8 @@ export default function SavedProperties() {
       <main className="pt-8 px-6 md:px-8 lg:px-12">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-8">
-            <Heart className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">Saved Properties</h1>
+            <Heart className="icon-xl icon-primary" />
+            <h1 className="text-3xl font-bold font-display">Saved Properties</h1>
           </div>
 
           {isLoading ? (
@@ -60,7 +60,7 @@ export default function SavedProperties() {
             />
           ) : (
             <div className="text-center py-16">
-              <Heart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <Heart className="icon-xl mx-auto icon-muted mb-4" />
               <h3 className="text-xl font-semibold mb-2">No saved properties yet</h3>
               <p className="text-muted-foreground mb-6">
                 Start browsing and save properties you like by clicking the heart icon!

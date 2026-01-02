@@ -71,7 +71,7 @@ function AdminDashboardContent() {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card>
+            <Card className="card-hover">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -82,13 +82,13 @@ function AdminDashboardContent() {
                     </p>
                   </div>
                   <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-primary" />
+                    <Users className="icon-lg icon-primary" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="card-hover">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -99,13 +99,13 @@ function AdminDashboardContent() {
                     </p>
                   </div>
                   <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                    <Building2 className="h-6 w-6 text-accent" />
+                    <Building2 className="icon-lg icon-accent" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="card-hover">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -113,13 +113,13 @@ function AdminDashboardContent() {
                     <p className="text-3xl font-bold">{stats?.totalBookings || 0}</p>
                   </div>
                   <div className="h-12 w-12 rounded-xl bg-info/10 flex items-center justify-center">
-                    <TrendingUp className="h-6 w-6 text-info" />
+                    <TrendingUp className="icon-lg icon-info" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="card-hover">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -129,7 +129,7 @@ function AdminDashboardContent() {
                     </p>
                   </div>
                   <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center">
-                    <Clock className="h-6 w-6 text-warning" />
+                    <Clock className="icon-lg icon-warning" />
                   </div>
                 </div>
               </CardContent>
@@ -139,10 +139,10 @@ function AdminDashboardContent() {
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <Link to="/admin/verify-agents">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+              <Card className="card-hover cursor-pointer h-full">
                 <CardContent className="p-6 flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center">
-                    <Shield className="h-6 w-6 text-warning" />
+                    <Shield className="icon-lg icon-warning" />
                   </div>
                   <div>
                     <p className="font-semibold">Verify Agents</p>
@@ -153,10 +153,10 @@ function AdminDashboardContent() {
             </Link>
             
             <Link to="/admin/approve-listings">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+              <Card className="card-hover cursor-pointer h-full">
                 <CardContent className="p-6 flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                    <FileCheck className="h-6 w-6 text-accent" />
+                    <FileCheck className="icon-lg icon-accent" />
                   </div>
                   <div>
                     <p className="font-semibold">Approve Listings</p>
@@ -167,10 +167,10 @@ function AdminDashboardContent() {
             </Link>
             
             <Link to="/admin/manage-admins">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+              <Card className="card-hover cursor-pointer h-full">
                 <CardContent className="p-6 flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <User className="h-6 w-6 text-primary" />
+                    <User className="icon-lg icon-primary" />
                   </div>
                   <div>
                     <p className="font-semibold">Manage Admins</p>
@@ -185,9 +185,9 @@ function AdminDashboardContent() {
             {/* Pending Agent Verifications */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Pending Agent Verifications
+              <CardTitle className="flex items-center gap-2 font-display">
+                <Shield className="icon-md" />
+                Pending Agent Verifications
                 </CardTitle>
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/admin/verify-agents">View All</Link>
@@ -204,7 +204,7 @@ function AdminDashboardContent() {
                         </div>
                         <div className="flex gap-2">
                           <Button size="sm" variant="accent">
-                            <CheckCircle className="h-4 w-4 mr-1" />
+                            <CheckCircle className="icon-sm mr-1" />
                             Approve
                           </Button>
                         </div>
@@ -213,7 +213,7 @@ function AdminDashboardContent() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <CheckCircle className="h-10 w-10 mx-auto text-accent mb-2" />
+                    <CheckCircle className="icon-xl mx-auto icon-accent mb-2" />
                     <p className="text-muted-foreground">No pending verifications</p>
                   </div>
                 )}
@@ -223,9 +223,9 @@ function AdminDashboardContent() {
             {/* Pending Property Approvals */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  Pending Listings
+              <CardTitle className="flex items-center gap-2 font-display">
+                <Building2 className="icon-md" />
+                Pending Listings
                 </CardTitle>
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/admin/approve-listings">View All</Link>
@@ -255,7 +255,7 @@ function AdminDashboardContent() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <CheckCircle className="h-10 w-10 mx-auto text-accent mb-2" />
+                    <CheckCircle className="icon-xl mx-auto icon-accent mb-2" />
                     <p className="text-muted-foreground">No pending listings</p>
                   </div>
                 )}
