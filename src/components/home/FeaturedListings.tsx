@@ -12,8 +12,8 @@ export function FeaturedListings() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">Featured Listings</h2>
-            <p className="text-muted-foreground">Handpicked verified properties for students</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-2 font-display">Featured Listings</h2>
+            <p className="text-muted-foreground leading-relaxed">Handpicked verified properties for students</p>
           </div>
           <Button variant="outline" asChild className="hidden md:flex">
             <Link to="/search">

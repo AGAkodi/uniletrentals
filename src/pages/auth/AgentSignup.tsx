@@ -130,13 +130,13 @@ export default function AgentSignup() {
               </div>
               <span className="text-2xl font-bold">UNILET</span>
             </Link>
-            <h1 className="text-3xl font-bold mb-2">Become an Agent</h1>
-            <p className="text-muted-foreground">List your properties and reach thousands of students</p>
+            <h1 className="text-3xl font-bold mb-2 font-display">Become an Agent</h1>
+            <p className="text-muted-foreground leading-relaxed">List your properties and reach thousands of students</p>
           </div>
 
           <div className="bg-warning/10 border border-warning/30 rounded-lg p-4 text-sm">
-            <p className="font-medium text-warning">Verification Required</p>
-            <p className="text-muted-foreground mt-1">
+            <p className="font-medium text-warning font-display">Verification Required</p>
+            <p className="text-muted-foreground mt-1 leading-relaxed">
               After signup, you'll need to upload verification documents. Your listings will be visible after admin approval.
             </p>
           </div>
@@ -335,8 +335,8 @@ export default function AgentSignup() {
         <div className="absolute inset-0 flex items-center justify-center p-12">
           <div className="text-primary-foreground text-center max-w-md">
             <Building2 className="h-16 w-16 mx-auto mb-6 opacity-80" />
-            <h2 className="text-4xl font-bold mb-4">Partner With UNILET</h2>
-            <p className="text-primary-foreground/80 text-lg">
+            <h2 className="text-4xl font-bold mb-4 font-display">Partner With UNILET</h2>
+            <p className="text-primary-foreground/80 text-lg leading-relaxed">
               List your properties, get verified, and connect with students looking for quality accommodation.
             </p>
             <div className="mt-8 space-y-4 text-left">

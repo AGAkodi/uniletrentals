@@ -84,8 +84,8 @@ export default function Signup() {
         <div className="absolute inset-0 bg-gradient-to-br from-accent to-accent/80" />
         <div className="absolute inset-0 flex items-center justify-center p-12">
           <div className="text-accent-foreground text-center max-w-md">
-            <h2 className="text-4xl font-bold mb-4">Join UNILET Today</h2>
-            <p className="text-accent-foreground/80 text-lg">
+            <h2 className="text-4xl font-bold mb-4 font-display">Join UNILET Today</h2>
+            <p className="text-accent-foreground/80 text-lg leading-relaxed">
               Create your account and start browsing verified student accommodations near your university.
             </p>
           </div>
@@ -104,8 +104,8 @@ export default function Signup() {
               </div>
               <span className="text-2xl font-bold">UNILET</span>
             </Link>
-            <h1 className="text-3xl font-bold mb-2">Create Student Account</h1>
-            <p className="text-muted-foreground">Start finding your perfect accommodation</p>
+            <h1 className="text-3xl font-bold mb-2 font-display">Create Student Account</h1>
+            <p className="text-muted-foreground leading-relaxed">Start finding your perfect accommodation</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

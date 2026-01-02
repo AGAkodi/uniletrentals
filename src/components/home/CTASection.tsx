@@ -12,10 +12,10 @@ export function CTASection() {
               <Building2 className="h-4 w-4" />
               <span className="text-sm font-semibold">For Property Owners</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-display">
               List Your Property on UNILET
             </h2>
-            <p className="text-primary-foreground/80 max-w-xl">
+            <p className="text-primary-foreground/80 max-w-xl leading-relaxed">
               Join our network of verified agents and reach thousands of students looking for accommodation near universities.
             </p>
           </div>

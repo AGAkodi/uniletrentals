@@ -67,8 +67,8 @@ export default function Login() {
               </div>
               <span className="text-2xl font-bold">UNILET</span>
             </Link>
-            <h1 className="text-3xl font-bold mb-2">Welcome back</h1>
-            <p className="text-muted-foreground">Sign in to your account to continue</p>
+            <h1 className="text-3xl font-bold mb-2 font-display">Welcome back</h1>
+            <p className="text-muted-foreground leading-relaxed">Sign in to your account to continue</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -138,8 +138,8 @@ export default function Login() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80" />
         <div className="absolute inset-0 flex items-center justify-center p-12">
           <div className="text-primary-foreground text-center max-w-md">
-            <h2 className="text-4xl font-bold mb-4">Find Your Home Away From Home</h2>
-            <p className="text-primary-foreground/80 text-lg">
+            <h2 className="text-4xl font-bold mb-4 font-display">Find Your Home Away From Home</h2>
+            <p className="text-primary-foreground/80 text-lg leading-relaxed">
               Join thousands of students who found their perfect accommodation through UNILET.
             </p>
           </div>

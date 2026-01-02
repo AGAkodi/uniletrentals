@@ -103,8 +103,8 @@ export default function PropertyDetail() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-3xl font-bold mb-4">Property Not Found</h1>
-          <p className="text-muted-foreground mb-6">The property you're looking for doesn't exist or has been removed.</p>
+          <h1 className="text-3xl font-bold mb-4 font-display">Property Not Found</h1>
+          <p className="text-muted-foreground mb-6 leading-relaxed">The property you're looking for doesn't exist or has been removed.</p>
           <Button asChild>
             <Link to="/search">Browse Properties</Link>
           </Button>
@@ -186,13 +186,13 @@ export default function PropertyDetail() {
                   Verified
                 </span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">{property.title}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2 font-display">{property.title}</h1>
               <div className="flex items-center gap-2 text-muted-foreground mb-4">
                 <MapPin className="h-5 w-5" />
                 <span>{property.address}, {property.city}{property.state ? `, ${property.state}` : ''}</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-primary">{formatPrice(property.price)}</span>
+                <span className="text-3xl font-bold text-primary font-display">{formatPrice(property.price)}</span>
                 <span className="text-muted-foreground">/year</span>
               </div>
             </div>

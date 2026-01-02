@@ -27,8 +27,8 @@ export function VerifiedAgents() {
             <Shield className="h-4 w-4" />
             <span className="text-sm font-semibold">Trust & Safety</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose UNILET?</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 font-display">Why Choose UNILET?</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             We connect students with verified accommodation providers, ensuring a safe and transparent rental experience.
           </p>
         </div>
@@ -42,8 +42,8 @@ export function VerifiedAgents() {
               <div className="inline-flex items-center justify-center h-14 w-14 rounded-xl bg-primary/10 text-primary mb-6">
                 <feature.icon className="h-7 w-7" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-              <p className="text-muted-foreground">{feature.description}</p>
+              <h3 className="text-xl font-semibold mb-3 font-display">{feature.title}</h3>
+              <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>
