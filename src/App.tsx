@@ -16,6 +16,7 @@ import AgentDashboard from "./pages/dashboard/AgentDashboard";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import AddProperty from "./pages/agent/AddProperty";
 import AgentVerification from "./pages/agent/Verification";
+import AgentBookings from "./pages/agent/Bookings";
 import VerifyAgents from "./pages/admin/VerifyAgents";
 import ApproveListings from "./pages/admin/ApproveListings";
 import AdminReports from "./pages/admin/Reports";
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/agent/profile" element={<AgentProfile />} />
             <Route path="/agent/add-property" element={<AddProperty />} />
             <Route path="/agent/verification" element={<AgentVerification />} />
+            <Route path="/agent/bookings" element={<AgentBookings />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/profile" element={<AdminProfile />} />
             <Route path="/admin/verify-agents" element={<VerifyAgents />} />
