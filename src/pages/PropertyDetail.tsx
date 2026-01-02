@@ -13,7 +13,7 @@ import { useProperty } from '@/hooks/useProperties';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
+import { AgentProfilePopup } from '@/components/property/AgentProfilePopup';
 export default function PropertyDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: property, isLoading } = useProperty(id || '');
@@ -265,21 +265,26 @@ export default function PropertyDetail() {
                 <CardTitle>Contact Agent</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-14 w-14">
-                    <AvatarImage src={property.agent?.avatar_url || ''} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                      {property.agent?.full_name?.charAt(0) || 'A'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold">{property.agent?.full_name || 'Agent'}</p>
-                    <div className="flex items-center gap-1 text-sm text-accent">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Verified Agent</span>
+                {property.agent && (
+                  <AgentProfilePopup agent={property.agent}>
+                    <div className="flex items-center gap-4 cursor-pointer hover:bg-secondary/50 rounded-lg p-2 -m-2 transition-colors">
+                      <Avatar className="h-14 w-14">
+                        <AvatarImage src={property.agent.avatar_url || ''} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                          {property.agent.full_name?.charAt(0) || 'A'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold text-primary hover:underline">{property.agent.full_name || 'Agent'}</p>
+                        <div className="flex items-center gap-1 text-sm text-accent">
+                          <CheckCircle className="h-4 w-4" />
+                          <span>Verified Agent</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Click to view profile</p>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </AgentProfilePopup>
+                )}
 
                 <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
