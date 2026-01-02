@@ -296,6 +296,7 @@ export type Database = {
           bathrooms: number | null
           bedrooms: number | null
           city: string
+          contact_clicks: number | null
           created_at: string | null
           currency: string | null
           description: string | null
@@ -320,6 +321,7 @@ export type Database = {
           bathrooms?: number | null
           bedrooms?: number | null
           city: string
+          contact_clicks?: number | null
           created_at?: string | null
           currency?: string | null
           description?: string | null
@@ -344,6 +346,7 @@ export type Database = {
           bathrooms?: number | null
           bedrooms?: number | null
           city?: string
+          contact_clicks?: number | null
           created_at?: string | null
           currency?: string | null
           description?: string | null
