@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export default function StudentProfile() {
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState(profile?.email || '');
@@ -78,6 +78,11 @@ export default function StudentProfile() {
         setNewPassword('');
       }
 
+      // Refresh profile in auth context so avatar updates everywhere
+      await refreshProfile();
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      
       toast.success('Profile updated successfully');
     } catch (error: any) {
       toast.error(error.message || 'Failed to update profile');
