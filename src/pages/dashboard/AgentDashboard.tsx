@@ -64,7 +64,7 @@ export default function AgentDashboard() {
             <CardContent className="p-4">
               <div className="flex items-center gap-4">
                 <div className="h-10 w-10 rounded-full bg-warning/20 flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-warning" />
+                  <Clock className="icon-md icon-warning" />
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold">Account Pending Verification</p>
@@ -82,11 +82,11 @@ export default function AgentDashboard() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
+          <Card className="card-hover">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-xl bg-success/10 flex items-center justify-center">
-                  <CheckCircle className="h-6 w-6 text-success" />
+                  <CheckCircle className="icon-lg icon-success" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{approvedCount}</p>
@@ -96,11 +96,11 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="card-hover">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-xl bg-warning/10 flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-warning" />
+                  <Clock className="icon-lg icon-warning" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{pendingCount}</p>
@@ -110,11 +110,11 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="card-hover">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-xl bg-info/10 flex items-center justify-center">
-                  <Eye className="h-6 w-6 text-info" />
+                  <Eye className="icon-lg icon-info" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{totalViews}</p>
@@ -124,11 +124,11 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="card-hover">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Calendar className="h-6 w-6 text-primary" />
+                  <Calendar className="icon-lg icon-primary" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{bookings?.length || 0}</p>
@@ -177,12 +177,12 @@ export default function AgentDashboard() {
               </div>
             ) : (
               <div className="text-center py-12">
-                <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No properties yet</h3>
+                <Building2 className="icon-xl mx-auto icon-muted mb-4" />
+                <h3 className="text-lg font-semibold mb-2 font-display">No properties yet</h3>
                 <p className="text-muted-foreground mb-4">Start by adding your first property listing.</p>
                 <Button asChild>
                   <Link to="/agent/add-property">
-                    <Plus className="h-5 w-5 mr-2" />
+                    <Plus className="icon-md mr-2" />
                     Add Property
                   </Link>
                 </Button>
@@ -216,7 +216,7 @@ export default function AgentDashboard() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Calendar className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                <Calendar className="icon-xl mx-auto icon-muted mb-2" />
                 <p className="text-muted-foreground">No booking requests yet</p>
               </div>
             )}

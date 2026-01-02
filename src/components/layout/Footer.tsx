@@ -10,9 +10,9 @@ export function Footer() {
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                <Home className="h-5 w-5 text-primary-foreground" />
+                <Home className="icon-md text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">UNILET</span>
+              <span className="text-xl font-bold font-display">UNILET</span>
             </Link>
             <p className="text-muted-foreground text-sm">
               The trusted platform connecting students with verified accommodation near universities.
@@ -21,7 +21,7 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
+            <h4 className="font-semibold mb-4 font-display">Quick Links</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link to="/search" className="hover:text-background transition-colors">
@@ -43,7 +43,7 @@ export function Footer() {
 
           {/* For Students */}
           <div>
-            <h4 className="font-semibold mb-4">For Students</h4>
+            <h4 className="font-semibold mb-4 font-display">For Students</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link to="/auth/signup" className="hover:text-background transition-colors">
@@ -65,18 +65,18 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-semibold mb-4">Contact</h4>
+            <h4 className="font-semibold mb-4 font-display">Contact</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
+                <Mail className="icon-sm" />
                 support@unilet.com
               </li>
               <li className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
+                <Phone className="icon-sm" />
                 +234 800 123 4567
               </li>
               <li className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
+                <MapPin className="icon-sm" />
                 Lagos, Nigeria
               </li>
             </ul>

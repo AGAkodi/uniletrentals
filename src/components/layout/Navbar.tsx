@@ -81,7 +81,7 @@ export function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Home className="h-5 w-5 text-primary-foreground" />
+              <Home className="icon-md text-primary-foreground" />
             </div>
             <span className="text-xl font-bold tracking-tight font-display">UNILET</span>
           </Link>
@@ -140,7 +140,7 @@ export function Navbar() {
                         onClick={() => navigate(item.href)}
                         className={`flex items-center gap-3 cursor-pointer ${isActive ? 'bg-secondary' : ''}`}
                       >
-                        <item.icon className="h-4 w-4" />
+                        <item.icon className="icon-sm icon-muted" />
                         <span>{item.label}</span>
                       </DropdownMenuItem>
                     );
@@ -150,7 +150,7 @@ export function Navbar() {
                     onClick={handleSignOut}
                     className="flex items-center gap-3 text-destructive cursor-pointer focus:text-destructive"
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="icon-sm" />
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -167,7 +167,7 @@ export function Navbar() {
               className="md:hidden"
               onClick={() => setIsOpen(!isOpen)}
             >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isOpen ? <X className="icon-md" /> : <Menu className="icon-md" />}
             </Button>
           ) : (
             <div className="md:hidden flex items-center gap-2">
@@ -212,7 +212,7 @@ export function Navbar() {
                         onClick={() => navigate(item.href)}
                         className={`flex items-center gap-3 cursor-pointer ${isActive ? 'bg-secondary' : ''}`}
                       >
-                        <item.icon className="h-4 w-4" />
+                        <item.icon className="icon-sm icon-muted" />
                         <span>{item.label}</span>
                       </DropdownMenuItem>
                     );
@@ -222,7 +222,7 @@ export function Navbar() {
                     onClick={handleSignOut}
                     className="flex items-center gap-3 text-destructive cursor-pointer focus:text-destructive"
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="icon-sm" />
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
