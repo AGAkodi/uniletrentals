@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Phone, Lock, Save, ArrowLeft } from 'lucide-react';
+import { Mail, Phone, Lock, Save, ArrowLeft, Sun, Moon, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,10 +10,13 @@ import { Navbar } from '@/components/layout/Navbar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
+import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 
 export default function StudentProfile() {
   const { profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState(profile?.email || '');
   const [phone, setPhone] = useState(profile?.phone || '');
@@ -21,6 +24,12 @@ export default function StudentProfile() {
   const [newPassword, setNewPassword] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  const themeOptions = [
+    { value: 'light', label: 'Light', icon: Sun },
+    { value: 'dark', label: 'Dark', icon: Moon },
+    { value: 'system', label: 'System', icon: Monitor },
+  ];
 
   const handleAvatarChange = (file: File) => {
     setAvatarFile(file);
@@ -172,6 +181,44 @@ export default function StudentProfile() {
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Theme Preference */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg">Appearance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Label className="mb-3 block">Theme Preference</Label>
+              <div className="grid grid-cols-3 gap-3">
+                {themeOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setTheme(option.value)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all",
+                      theme === option.value
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <option.icon className={cn(
+                      "h-6 w-6",
+                      theme === option.value ? "text-primary" : "text-muted-foreground"
+                    )} />
+                    <span className={cn(
+                      "text-sm font-medium",
+                      theme === option.value ? "text-primary" : "text-muted-foreground"
+                    )}>
+                      {option.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground mt-3">
+                Choose your preferred theme. System will automatically match your device settings.
+              </p>
             </CardContent>
           </Card>
 
