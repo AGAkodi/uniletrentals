@@ -124,129 +124,115 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-xs sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="text-base">Agent Profile</DialogTitle>
+      <DialogContent className="max-w-[280px] p-4">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-sm">Agent Profile</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* Agent Info */}
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={agent.avatar_url || ''} />
-              <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+              <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                 {agent.full_name?.charAt(0) || 'A'}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold text-lg">{agent.full_name}</h3>
+              <h3 className="font-semibold text-sm">{agent.full_name}</h3>
               {verification?.agent_id && (
-                <p className="text-sm text-muted-foreground">ID: {verification.agent_id}</p>
+                <p className="text-xs text-muted-foreground">ID: {verification.agent_id}</p>
               )}
               {verification?.verification_status === 'approved' && (
-                <div className="flex items-center gap-1 text-sm text-accent mt-1">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>Verified Agent</span>
+                <div className="flex items-center gap-1 text-xs text-accent">
+                  <CheckCircle className="h-3 w-3" />
+                  <span>Verified</span>
                 </div>
               )}
             </div>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-secondary rounded-lg p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <Home className="h-5 w-5 text-primary" />
-                <span className="text-2xl font-bold">{listingCount ?? '-'}</span>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-secondary rounded-md p-2 text-center">
+              <div className="flex items-center justify-center gap-1">
+                <Home className="h-3 w-3 text-primary" />
+                <span className="text-sm font-bold">{listingCount ?? '-'}</span>
               </div>
-              <p className="text-sm text-muted-foreground">Listed Properties</p>
+              <p className="text-xs text-muted-foreground">Listings</p>
             </div>
-            <div className="bg-secondary rounded-lg p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <Star className="h-5 w-5 fill-warning text-warning" />
-                <span className="text-2xl font-bold">{averageRating.toFixed(1)}</span>
+            <div className="bg-secondary rounded-md p-2 text-center">
+              <div className="flex items-center justify-center gap-1">
+                <Star className="h-3 w-3 fill-warning text-warning" />
+                <span className="text-sm font-bold">{averageRating.toFixed(1)}</span>
               </div>
-              <p className="text-sm text-muted-foreground">{reviews?.length || 0} Reviews</p>
+              <p className="text-xs text-muted-foreground">{reviews?.length || 0} Reviews</p>
             </div>
           </div>
-
-          <Separator />
 
           {/* Reviews */}
-          <div>
-            <h4 className="font-semibold mb-3">Recent Reviews</h4>
-            {reviews && reviews.length > 0 ? (
-              <div className="space-y-3 max-h-40 overflow-y-auto">
-                {reviews.map((review) => (
-                  <div key={review.id} className="bg-secondary/50 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="text-xs">
-                          {(review.profiles as any)?.full_name?.charAt(0) || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium">{(review.profiles as any)?.full_name || 'User'}</span>
-                      <div className="flex items-center gap-0.5 ml-auto">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star 
-                            key={star} 
-                            className={`h-3 w-3 ${star <= review.rating ? 'fill-warning text-warning' : 'text-muted-foreground'}`} 
-                          />
-                        ))}
-                      </div>
+          {reviews && reviews.length > 0 && (
+            <div className="max-h-20 overflow-y-auto space-y-1">
+              {reviews.slice(0, 2).map((review) => (
+                <div key={review.id} className="bg-secondary/50 rounded p-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium truncate">{(review.profiles as any)?.full_name || 'User'}</span>
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star 
+                          key={star} 
+                          className={`h-2.5 w-2.5 ${star <= review.rating ? 'fill-warning text-warning' : 'text-muted-foreground'}`} 
+                        />
+                      ))}
                     </div>
-                    {review.comment && (
-                      <p className="text-sm text-muted-foreground">{review.comment}</p>
-                    )}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No reviews yet</p>
-            )}
-          </div>
-
-          <Separator />
+                  {review.comment && (
+                    <p className="text-muted-foreground truncate mt-0.5">{review.comment}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Leave Review */}
-          <div>
-            <h4 className="font-semibold mb-3">Leave a Review</h4>
-            <div className="space-y-3">
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setRating(star)}
-                    onMouseEnter={() => setHoverRating(star)}
-                    onMouseLeave={() => setHoverRating(0)}
-                    className="focus:outline-none"
-                  >
-                    <Star 
-                      className={`h-7 w-7 transition-colors ${
-                        star <= (hoverRating || rating) 
-                          ? 'fill-warning text-warning' 
-                          : 'text-muted-foreground hover:text-warning/50'
-                      }`} 
-                    />
-                  </button>
-                ))}
-              </div>
-              <Textarea
-                placeholder="Share your experience with this agent (optional)"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={3}
-              />
-              <Button 
-                onClick={handleSubmitReview} 
-                disabled={isSubmitting || rating === 0}
-                className="w-full"
-              >
-                <Send className="h-4 w-4 mr-2" />
-                Submit Review
-              </Button>
+          <div className="border-t pt-3">
+            <p className="text-xs font-medium mb-2">Rate this agent</p>
+            <div className="flex items-center gap-0.5 mb-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  className="focus:outline-none"
+                >
+                  <Star 
+                    className={`h-5 w-5 transition-colors ${
+                      star <= (hoverRating || rating) 
+                        ? 'fill-warning text-warning' 
+                        : 'text-muted-foreground hover:text-warning/50'
+                    }`} 
+                  />
+                </button>
+              ))}
             </div>
+            <Textarea
+              placeholder="Comment (optional)"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              rows={2}
+              className="text-xs min-h-0"
+            />
+            <Button 
+              onClick={handleSubmitReview} 
+              disabled={isSubmitting || rating === 0}
+              size="sm"
+              className="w-full mt-2"
+            >
+              <Send className="h-3 w-3 mr-1" />
+              Submit
+            </Button>
           </div>
         </div>
       </DialogContent>
