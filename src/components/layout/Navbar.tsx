@@ -24,9 +24,14 @@ const studentMenuItems = [
   { icon: FileText, label: 'Blog', href: '/student/blog' },
 ];
 
+import { Calendar, BarChart3 } from 'lucide-react';
+
 const agentMenuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/agent' },
+  { icon: Building2, label: 'My Listings', href: '/agent/listings' },
   { icon: Building2, label: 'Add Property', href: '/agent/add-property' },
+  { icon: Calendar, label: 'Bookings', href: '/agent/bookings' },
+  { icon: BarChart3, label: 'Analytics', href: '/agent/analytics' },
   { icon: CheckCircle, label: 'Verification', href: '/agent/verification' },
   { icon: User, label: 'Profile', href: '/agent/profile' },
 ];
