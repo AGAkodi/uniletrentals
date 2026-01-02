@@ -124,9 +124,9 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-xs sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Agent Profile</DialogTitle>
+          <DialogTitle className="text-base">Agent Profile</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
