@@ -153,12 +153,14 @@ export interface SearchFilters {
 }
 
 export type GenderPreference = 'male' | 'female' | 'any';
+export type ReligionPreference = 'any' | 'christian' | 'muslim' | 'other';
 
 export interface SharedRental {
   id: string;
   property_id: string;
   host_student_id: string;
   gender_preference: GenderPreference;
+  religion_preference: ReligionPreference;
   total_rent: number;
   rent_split: number;
   description: string | null;

@@ -608,6 +608,7 @@ export type Database = {
           id: string
           move_in_date: string | null
           property_id: string
+          religion_preference: string | null
           rent_split: number
           status: string
           total_rent: number
@@ -621,6 +622,7 @@ export type Database = {
           id?: string
           move_in_date?: string | null
           property_id: string
+          religion_preference?: string | null
           rent_split: number
           status?: string
           total_rent: number
@@ -634,6 +636,7 @@ export type Database = {
           id?: string
           move_in_date?: string | null
           property_id?: string
+          religion_preference?: string | null
           rent_split?: number
           status?: string
           total_rent?: number

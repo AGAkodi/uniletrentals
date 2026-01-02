@@ -66,6 +66,19 @@ export function SharedRentalCard({
     }
   };
 
+  const getReligionLabel = (preference: string) => {
+    switch (preference) {
+      case 'christian':
+        return 'Christian';
+      case 'muslim':
+        return 'Muslim';
+      case 'other':
+        return 'Other Religion';
+      default:
+        return 'Any Religion';
+    }
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -150,9 +163,16 @@ export function SharedRentalCard({
           <Badge className="absolute top-3 left-3 bg-primary">
             Shared Rental
           </Badge>
-          <Badge className="absolute top-3 right-3 bg-secondary text-secondary-foreground">
-            {getGenderLabel(sharedRental.gender_preference)}
-          </Badge>
+          <div className="absolute top-3 right-3 flex flex-col gap-1">
+            <Badge className="bg-secondary text-secondary-foreground">
+              {getGenderLabel(sharedRental.gender_preference)}
+            </Badge>
+            {sharedRental.religion_preference && sharedRental.religion_preference !== 'any' && (
+              <Badge className="bg-secondary text-secondary-foreground">
+                {getReligionLabel(sharedRental.religion_preference)}
+              </Badge>
+            )}
+          </div>
         </div>
       </Link>
       <CardContent className="p-4">
