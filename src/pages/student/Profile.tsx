@@ -107,7 +107,7 @@ export default function StudentProfile() {
             <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-3xl font-bold">My Profile</h1>
+            <h1 className="text-3xl font-bold font-display">My Profile</h1>
           </div>
 
           {/* Avatar Section */}
@@ -121,8 +121,8 @@ export default function StudentProfile() {
                   previewUrl={avatarPreview}
                 />
                 <div>
-                  <h2 className="text-xl font-semibold">{profile?.full_name}</h2>
-                  <p className="text-muted-foreground">Upload your passport photograph</p>
+                  <h2 className="text-xl font-semibold font-display">{profile?.full_name}</h2>
+                  <p className="text-muted-foreground leading-relaxed">Upload your passport photograph</p>
                 </div>
               </div>
             </CardContent>

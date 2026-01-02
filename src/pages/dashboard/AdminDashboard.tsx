@@ -67,7 +67,7 @@ function AdminDashboardContent() {
 
       <main className="pt-8 px-6 md:px-8 lg:px-12">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold mb-8 font-display">Admin Dashboard</h1>
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

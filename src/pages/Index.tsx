@@ -20,11 +20,11 @@ const Index = () => {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent mb-6">
               <span className="text-sm font-semibold">🎓 Trusted by 10,000+ Students</span>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-display">
               Find Your Perfect
               <span className="text-gradient block mt-2">Student Accommodation</span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
               Connect with verified agents and discover safe, affordable housing near your university. 
               No stress, no scams — just your ideal home.
             </p>
@@ -37,16 +37,16 @@ const Index = () => {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-xl mx-auto mt-12 animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-primary">500+</div>
-              <div className="text-sm text-muted-foreground">Verified Listings</div>
+              <div className="text-2xl md:text-3xl font-bold text-primary font-display">500+</div>
+              <div className="text-sm text-muted-foreground tracking-wide">Verified Listings</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-primary">100+</div>
-              <div className="text-sm text-muted-foreground">Verified Agents</div>
+              <div className="text-2xl md:text-3xl font-bold text-primary font-display">100+</div>
+              <div className="text-sm text-muted-foreground tracking-wide">Verified Agents</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-primary">10K+</div>
-              <div className="text-sm text-muted-foreground">Happy Students</div>
+              <div className="text-2xl md:text-3xl font-bold text-primary font-display">10K+</div>
+              <div className="text-sm text-muted-foreground tracking-wide">Happy Students</div>
             </div>
           </div>
         </div>
