@@ -189,6 +189,7 @@
     box-shadow: var(--shadow-card-hover);
   }
 
+  /* Micro-animations */
   .animate-fade-in {
     animation: fadeIn 0.5s ease-out forwards;
   }
@@ -199,6 +200,87 @@
 
   .animate-scale-in {
     animation: scaleIn 0.3s ease-out forwards;
+  }
+
+  /* Card hover transitions */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-hover:hover {
+    @apply shadow-card-hover;
+    transform: translateY(-4px);
+  }
+
+  /* Button micro-interactions */
+  .btn-hover {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .btn-hover:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn-hover:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* Icon standardization */
+  .icon-sm {
+    @apply h-4 w-4 shrink-0;
+  }
+
+  .icon-md {
+    @apply h-5 w-5 shrink-0;
+  }
+
+  .icon-lg {
+    @apply h-6 w-6 shrink-0;
+  }
+
+  .icon-muted {
+    @apply text-muted-foreground transition-colors duration-200;
+  }
+
+  .icon-primary {
+    @apply text-primary transition-colors duration-200;
+  }
+
+  .icon-accent {
+    @apply text-accent transition-colors duration-200;
+  }
+
+  /* Interactive icon hover */
+  .icon-interactive {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .icon-interactive:hover {
+    @apply text-primary;
+    transform: scale(1.1);
+  }
+
+  /* Image zoom on hover */
+  .img-zoom {
+    @apply transition-transform duration-500 ease-out;
+  }
+
+  .group:hover .img-zoom {
+    transform: scale(1.05);
+  }
+
+  /* Link hover underline animation */
+  .link-hover {
+    @apply relative;
+  }
+
+  .link-hover::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-0.5 bg-primary origin-bottom-right transition-transform duration-300 scale-x-0;
+  }
+
+  .link-hover:hover::after {
+    @apply origin-bottom-left scale-x-100;
   }
 
   .verified-badge {
