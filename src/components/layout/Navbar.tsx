@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 const studentMenuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -98,6 +99,7 @@ export function Navbar() {
               </>
             ) : (
               <div className="flex items-center gap-2">
+                <ThemeToggle />
                 <NotificationBell />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -169,6 +171,7 @@ export function Navbar() {
             </Button>
           ) : (
             <div className="md:hidden flex items-center gap-2">
+              <ThemeToggle />
               <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
