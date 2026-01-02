@@ -46,6 +46,9 @@ const formSchema = z.object({
   gender_preference: z.enum(['male', 'female', 'any'], {
     required_error: 'Please select a gender preference',
   }),
+  religion_preference: z.enum(['any', 'christian', 'muslim', 'other'], {
+    required_error: 'Please select a religion preference',
+  }),
   total_rent: z.number().min(1, 'Total rent is required'),
   rent_split: z.number().min(1, 'Rent split is required'),
   description: z.string().max(500, 'Description must be less than 500 characters').optional(),
@@ -74,6 +77,7 @@ export function CreateSharedRentalDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       gender_preference: 'any',
+      religion_preference: 'any',
       total_rent: property.price,
       rent_split: Math.round(property.price / 2),
       description: '',
@@ -94,6 +98,7 @@ export function CreateSharedRentalDialog({
         property_id: property.id,
         host_student_id: user.id,
         gender_preference: values.gender_preference,
+        religion_preference: values.religion_preference,
         total_rent: values.total_rent,
         rent_split: values.rent_split,
         description: values.description || null,
@@ -149,6 +154,30 @@ export function CreateSharedRentalDialog({
                       <SelectItem value="any">Any</SelectItem>
                       <SelectItem value="male">Male</SelectItem>
                       <SelectItem value="female">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="religion_preference"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preferred Religion</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select religion preference" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="any">Any</SelectItem>
+                      <SelectItem value="christian">Christian</SelectItem>
+                      <SelectItem value="muslim">Muslim</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
