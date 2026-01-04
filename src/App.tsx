@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import AgentSignup from "./pages/auth/AgentSignup";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import Search from "./pages/Search";
 import PropertyDetail from "./pages/PropertyDetail";
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
@@ -56,6 +58,8 @@ const App = () => (
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/signup" element={<Signup />} />
                 <Route path="/auth/agent-signup" element={<AgentSignup />} />
+                <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+                <Route path="/auth/reset-password" element={<ResetPassword />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/property/:id" element={<PropertyDetail />} />
                 <Route path="/dashboard" element={<StudentDashboard />} />

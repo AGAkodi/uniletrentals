@@ -172,6 +172,9 @@ export default function Login() {
           </form>
 
           <div className="text-center space-y-4">
+            <Link to="/auth/forgot-password" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              Forgot your password?
+            </Link>
             <p className="text-muted-foreground">
               Don't have an account?{' '}
               <Link to="/auth/signup" className="text-primary font-semibold hover:underline">
