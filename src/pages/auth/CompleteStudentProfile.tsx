@@ -73,7 +73,7 @@ export default function CompleteStudentProfile() {
       description: 'Your profile has been updated successfully.',
     });
     
-    navigate('/dashboard');
+    navigate('/student/dashboard');
   };
 
   return (

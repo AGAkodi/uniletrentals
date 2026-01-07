@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const mainNavItems = [
-  { title: 'Dashboard', url: '/agent', icon: LayoutDashboard },
+  { title: 'Dashboard', url: '/agent/dashboard', icon: LayoutDashboard },
   { title: 'My Listings', url: '/agent/listings', icon: Building2 },
   { title: 'Add Property', url: '/agent/add-property', icon: Plus },
   { title: 'Bookings', url: '/agent/bookings', icon: Calendar },
@@ -40,8 +40,8 @@ export function AgentSidebar() {
   const collapsed = state === 'collapsed';
 
   const isActive = (path: string) => {
-    if (path === '/agent') {
-      return location.pathname === '/agent';
+    if (path === '/agent/dashboard') {
+      return location.pathname === '/agent/dashboard';
     }
     return location.pathname.startsWith(path);
   };

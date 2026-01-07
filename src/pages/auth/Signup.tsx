@@ -75,7 +75,7 @@ export default function Signup() {
     }
 
     toast({ title: 'Account created!', description: 'Welcome to UNILET.' });
-    navigate('/dashboard');
+    navigate('/student/dashboard');
   };
 
   const handleGoogleSignUp = async () => {

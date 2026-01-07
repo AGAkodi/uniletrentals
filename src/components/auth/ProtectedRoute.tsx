@@ -63,9 +63,9 @@ export function ProtectedRoute({
       if (!allowedRoles.includes(profile.role)) {
         // Redirect to appropriate dashboard based on role
         const dashboardRoutes: Record<UserRole, string> = {
-          student: '/dashboard',
-          agent: '/agent',
-          admin: '/admin',
+          student: '/student/dashboard',
+          agent: '/agent/dashboard',
+          admin: '/admin/dashboard',
         };
         navigate(dashboardRoutes[profile.role], { replace: true });
       }

@@ -16,7 +16,7 @@ import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 const studentMenuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/student/dashboard' },
   { icon: User, label: 'Profile', href: '/student/profile' },
   { icon: Search, label: 'Browse Listings', href: '/search' },
   { icon: Heart, label: 'Saved Properties', href: '/student/saved' },
@@ -28,7 +28,7 @@ const studentMenuItems = [
 import { Calendar, BarChart3 } from 'lucide-react';
 
 const agentMenuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/agent' },
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/agent/dashboard' },
   { icon: Building2, label: 'My Listings', href: '/agent/listings' },
   { icon: Building2, label: 'Add Property', href: '/agent/add-property' },
   { icon: Calendar, label: 'Bookings', href: '/agent/bookings' },
@@ -38,7 +38,7 @@ const agentMenuItems = [
 ];
 
 const adminMenuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
   { icon: CheckCircle, label: 'Approve Listings', href: '/admin/approve-listings' },
   { icon: Shield, label: 'Verify Agents', href: '/admin/verify-agents' },
   { icon: Users, label: 'Shared Rentals', href: '/admin/shared-rentals' },

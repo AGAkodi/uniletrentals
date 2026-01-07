@@ -56,7 +56,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/dashboard" className="hover:text-background transition-colors">
+                <Link to="/student/dashboard" className="hover:text-background transition-colors">
                   My Bookings
                 </Link>
               </li>

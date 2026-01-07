@@ -7,12 +7,12 @@ import { Profile, UserRole } from '@/types/database';
 export function getDashboardRoute(role: UserRole | undefined): string {
   switch (role) {
     case 'admin':
-      return '/admin';
+      return '/admin/dashboard';
     case 'agent':
-      return '/agent';
+      return '/agent/dashboard';
     case 'student':
     default:
-      return '/dashboard';
+      return '/student/dashboard';
   }
 }
 

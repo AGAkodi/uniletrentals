@@ -125,7 +125,7 @@ export default function SetupAdmin() {
 
         // Navigate to admin dashboard after a short delay
         setTimeout(() => {
-          navigate('/admin');
+          navigate('/admin/dashboard');
         }, 2000);
       }
     } catch (error: any) {

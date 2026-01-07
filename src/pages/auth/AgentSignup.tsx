@@ -118,7 +118,7 @@ export default function AgentSignup() {
       title: 'Account created!', 
       description: 'Your agent account is pending verification. You can upload documents from your dashboard.' 
     });
-    navigate('/agent');
+    navigate('/agent/dashboard');
   };
 
   const handleGoogleSignup = async () => {

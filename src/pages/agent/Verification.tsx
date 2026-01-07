@@ -238,7 +238,7 @@ export default function AgentVerification() {
       <div className="max-w-2xl mx-auto px-4 py-8">
         <Button
           variant="ghost"
-          onClick={() => navigate('/agent')}
+          onClick={() => navigate('/agent/dashboard')}
           className="mb-6"
         >
           <ChevronLeft className="h-4 w-4 mr-2" />
