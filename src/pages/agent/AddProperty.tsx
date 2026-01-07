@@ -225,7 +225,7 @@ export default function AddProperty() {
         title: 'Property submitted!', 
         description: 'Your listing is pending admin approval.' 
       });
-      navigate('/agent');
+      navigate('/agent/dashboard');
     } catch (error: any) {
       toast({ 
         title: 'Failed to create property', 
@@ -255,7 +255,7 @@ export default function AddProperty() {
         <div className="max-w-2xl mx-auto px-4 py-8">
           <Button
             variant="ghost"
-            onClick={() => navigate('/agent')}
+            onClick={() => navigate('/agent/dashboard')}
             className="mb-6"
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
@@ -280,7 +280,7 @@ export default function AddProperty() {
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to="/agent">Back to Dashboard</Link>
+                  <Link to="/agent/dashboard">Back to Dashboard</Link>
                 </Button>
               </div>
             </CardContent>
@@ -297,7 +297,7 @@ export default function AddProperty() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Button
           variant="ghost"
-          onClick={() => navigate('/agent')}
+          onClick={() => navigate('/agent/dashboard')}
           className="mb-6"
         >
           <ChevronLeft className="h-4 w-4 mr-2" />

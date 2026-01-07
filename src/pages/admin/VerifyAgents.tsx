@@ -175,7 +175,7 @@ export default function VerifyAgents() {
       
       <div className="max-w-6xl mx-auto px-4 py-8">
         <Button variant="ghost" asChild className="mb-6">
-          <Link to="/admin">
+          <Link to="/admin/dashboard">
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>

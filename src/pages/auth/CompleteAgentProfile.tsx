@@ -114,7 +114,7 @@ export default function CompleteAgentProfile() {
       description: 'Your agent account is pending verification. You can upload documents from your dashboard.',
     });
     
-    navigate('/agent');
+    navigate('/agent/dashboard');
   };
 
   return (

@@ -66,15 +66,18 @@ const App = () => (
                 <Route path="/auth/complete-agent-profile" element={<CompleteAgentProfile />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/property/:id" element={<PropertyDetail />} />
-                <Route path="/dashboard" element={<StudentDashboard />} />
-                <Route path="/notifications" element={<Notifications />} />
+                {/* Student Routes */}
+                <Route path="/student/dashboard" element={<StudentDashboard />} />
                 <Route path="/student/profile" element={<StudentProfile />} />
                 <Route path="/student/saved" element={<SavedProperties />} />
                 <Route path="/student/bookings" element={<MyBookings />} />
                 <Route path="/student/shared" element={<SharedRentals />} />
                 <Route path="/student/compare" element={<CompareProperties />} />
                 <Route path="/student/blog" element={<StudentBlog />} />
-                <Route path="/agent" element={<AgentDashboard />} />
+                <Route path="/notifications" element={<Notifications />} />
+                
+                {/* Agent Routes */}
+                <Route path="/agent/dashboard" element={<AgentDashboard />} />
                 <Route path="/agent/profile" element={<AgentProfile />} />
                 <Route path="/agent/add-property" element={<AddProperty />} />
                 <Route path="/agent/verification" element={<AgentVerification />} />
@@ -82,7 +85,9 @@ const App = () => (
                 <Route path="/agent/listings" element={<AgentListings />} />
                 <Route path="/agent/analytics" element={<AgentAnalytics />} />
                 <Route path="/agent/edit-property/:id" element={<EditProperty />} />
-                <Route path="/admin" element={<AdminDashboard />} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/profile" element={<AdminProfile />} />
                 <Route path="/admin/verify-agents" element={<VerifyAgents />} />
                 <Route path="/admin/approve-listings" element={<ApproveListings />} />
@@ -90,6 +95,8 @@ const App = () => (
                 <Route path="/admin/manage-admins" element={<ManageAdmins />} />
                 <Route path="/admin/shared-rentals" element={<ManageSharedRentals />} />
                 <Route path="/setup-admin" element={<SetupAdmin />} />
+                
+                {/* Public Routes */}
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="*" element={<NotFound />} />
