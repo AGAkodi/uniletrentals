@@ -13,6 +13,8 @@ import Signup from "./pages/auth/Signup";
 import AgentSignup from "./pages/auth/AgentSignup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
+import CompleteStudentProfile from "./pages/auth/CompleteStudentProfile";
+import CompleteAgentProfile from "./pages/auth/CompleteAgentProfile";
 import Search from "./pages/Search";
 import PropertyDetail from "./pages/PropertyDetail";
 import StudentDashboard from "./pages/dashboard/StudentDashboard";
@@ -60,6 +62,8 @@ const App = () => (
                 <Route path="/auth/agent-signup" element={<AgentSignup />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
+                <Route path="/auth/complete-student-profile" element={<CompleteStudentProfile />} />
+                <Route path="/auth/complete-agent-profile" element={<CompleteAgentProfile />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/property/:id" element={<PropertyDetail />} />
                 <Route path="/dashboard" element={<StudentDashboard />} />
