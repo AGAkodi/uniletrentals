@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { Home, Mail, Lock, Eye, EyeOff, User, Phone, Building2, MapPin, GraduationCap, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Phone, Building2, MapPin, GraduationCap, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
+import logo from '@/assets/logo.svg';
 
 const agentSignupSchema = z.object({
   fullName: z.string().min(2, 'Full name is required').max(100),
@@ -140,11 +141,8 @@ export default function AgentSignup() {
       <div className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
-            <Link to="/" className="inline-flex items-center gap-2 mb-6">
-              <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-                <Home className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="text-2xl font-bold">UNILET</span>
+            <Link to="/" className="inline-block mb-6">
+              <img src={logo} alt="UNILET" className="h-12 mx-auto" />
             </Link>
             <h1 className="text-3xl font-bold mb-2 font-display">Become an Agent</h1>
             <p className="text-muted-foreground leading-relaxed">List your properties and reach thousands of students</p>
