@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Home, Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
+import logo from '@/assets/logo.svg';
 
 export function Footer() {
   return (
@@ -8,11 +9,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                <Home className="icon-md text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold font-display">UNILET</span>
+            <Link to="/" className="flex items-center">
+              <img src={logo} alt="UNILET" className="h-10 brightness-0 invert" />
             </Link>
             <p className="text-muted-foreground text-sm">
               The trusted platform connecting students with verified accommodation near universities.
