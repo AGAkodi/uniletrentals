@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Home, LogOut, LayoutDashboard, User, Building2, Shield, CheckCircle, Heart, FileText, Users, AlertTriangle, GitCompare, Search } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, User, Building2, Shield, CheckCircle, Heart, FileText, Users, AlertTriangle, GitCompare, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import logo from '@/assets/logo.svg';
 
 const studentMenuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/student/dashboard' },
@@ -79,11 +80,8 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Home className="icon-md text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold tracking-tight font-display">UNILET</span>
+          <Link to="/" className="flex items-center">
+            <img src={logo} alt="UNILET" className="h-10" />
           </Link>
 
           {/* Auth Section - Desktop */}
