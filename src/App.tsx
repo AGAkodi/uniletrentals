@@ -32,6 +32,7 @@ import AdminReports from "./pages/admin/Reports";
 import SetupAdmin from "./pages/admin/SetupAdmin";
 import ManageAdmins from "./pages/admin/ManageAdmins";
 import ManageSharedRentals from "./pages/admin/ManageSharedRentals";
+import ManageAgents from "./pages/admin/ManageAgents";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import SavedProperties from "./pages/student/SavedProperties";
@@ -93,6 +94,7 @@ const App = () => (
                 <Route path="/admin/approve-listings" element={<ApproveListings />} />
                 <Route path="/admin/reports" element={<AdminReports />} />
                 <Route path="/admin/manage-admins" element={<ManageAdmins />} />
+                <Route path="/admin/manage-agents" element={<ManageAgents />} />
                 <Route path="/admin/shared-rentals" element={<ManageSharedRentals />} />
                 <Route path="/setup-admin" element={<SetupAdmin />} />
                 

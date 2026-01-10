@@ -21,11 +21,16 @@ export type Database = {
           created_at: string | null
           government_id_url: string | null
           id: string
+          is_suspended: boolean | null
           office_address: string | null
           passport_photo_url: string | null
           proof_of_ownership_url: string | null
           rejection_reason: string | null
           submitted_at: string | null
+          suspended_at: string | null
+          suspended_by: string | null
+          suspended_until: string | null
+          suspension_reason: string | null
           updated_at: string | null
           user_id: string
           verification_status:
@@ -41,11 +46,16 @@ export type Database = {
           created_at?: string | null
           government_id_url?: string | null
           id?: string
+          is_suspended?: boolean | null
           office_address?: string | null
           passport_photo_url?: string | null
           proof_of_ownership_url?: string | null
           rejection_reason?: string | null
           submitted_at?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspended_until?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
           user_id: string
           verification_status?:
@@ -61,11 +71,16 @@ export type Database = {
           created_at?: string | null
           government_id_url?: string | null
           id?: string
+          is_suspended?: boolean | null
           office_address?: string | null
           passport_photo_url?: string | null
           proof_of_ownership_url?: string | null
           rejection_reason?: string | null
           submitted_at?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspended_until?: string | null
+          suspension_reason?: string | null
           updated_at?: string | null
           user_id?: string
           verification_status?:
