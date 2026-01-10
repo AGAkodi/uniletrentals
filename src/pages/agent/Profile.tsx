@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Phone, Lock, Save, ArrowLeft } from 'lucide-react';
+import { Mail, Phone, Lock, Save, ArrowLeft, Shield, CheckCircle, Building2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +35,8 @@ export default function AgentProfile() {
       return data;
     }
   );
+
+  const isVerified = verification?.verification_status === 'approved';
 
   const handleAvatarChange = (file: File) => {
     setAvatarFile(file);
@@ -132,10 +135,36 @@ export default function AgentProfile() {
             </CardContent>
           </Card>
 
+          {/* Agent ID Card - Prominent Display */}
+          {isVerified && verification?.agent_id && (
+            <Card className="mb-6 border-2 border-accent bg-gradient-to-r from-accent/10 to-accent/5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="h-14 w-14 rounded-full bg-accent/20 flex items-center justify-center">
+                      <Shield className="h-7 w-7 text-accent" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm text-muted-foreground">Verified Agent ID</p>
+                        <Badge className="bg-accent text-accent-foreground gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Verified
+                        </Badge>
+                      </div>
+                      <p className="font-mono text-2xl font-bold text-accent">{verification.agent_id}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Read-Only Information */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="text-lg">Account Information</CardTitle>
+              <CardDescription>Your verified account details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -144,12 +173,28 @@ export default function AgentProfile() {
                   <p className="font-medium">{profile?.full_name || 'Not set'}</p>
                 </div>
               </div>
-              <div>
-                <Label className="text-muted-foreground">Agent ID</Label>
-                <div className="mt-1 p-3 bg-muted rounded-lg">
-                  <p className="font-medium font-mono">{verification?.agent_id || 'Not assigned'}</p>
+              {verification?.company_name && (
+                <div>
+                  <Label className="text-muted-foreground flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Company Name
+                  </Label>
+                  <div className="mt-1 p-3 bg-muted rounded-lg">
+                    <p className="font-medium">{verification.company_name}</p>
+                  </div>
                 </div>
-              </div>
+              )}
+              {verification?.office_address && (
+                <div>
+                  <Label className="text-muted-foreground flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Office Address
+                  </Label>
+                  <div className="mt-1 p-3 bg-muted rounded-lg">
+                    <p className="font-medium">{verification.office_address}</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
