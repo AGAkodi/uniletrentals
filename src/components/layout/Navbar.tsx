@@ -42,6 +42,7 @@ const adminMenuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
   { icon: CheckCircle, label: 'Approve Listings', href: '/admin/approve-listings' },
   { icon: Shield, label: 'Verify Agents', href: '/admin/verify-agents' },
+  { icon: Users, label: 'Manage Agents', href: '/admin/manage-agents' },
   { icon: Users, label: 'Shared Rentals', href: '/admin/shared-rentals' },
   { icon: AlertTriangle, label: 'Reports', href: '/admin/reports' },
   { icon: Users, label: 'Manage Admins', href: '/admin/manage-admins' },
