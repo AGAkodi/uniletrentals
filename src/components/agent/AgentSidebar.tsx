@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Building2, Plus, Calendar, BarChart3, 
-  User, LogOut, ChevronLeft
+  User, LogOut, ChevronLeft, ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import {
@@ -31,6 +31,7 @@ const mainNavItems = [
 
 const accountNavItems = [
   { title: 'Profile', url: '/agent/profile', icon: User },
+  { title: 'Verification', url: '/agent/verification', icon: ShieldCheck },
 ];
 
 export function AgentSidebar() {
