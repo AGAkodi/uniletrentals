@@ -59,14 +59,37 @@ export default function VerifyAgents() {
     }
   );
 
-  const handleDownloadZip = (zipUrl: string, agentName: string) => {
-    const link = document.createElement('a');
-    link.href = zipUrl;
-    link.download = `${agentName.replace(/\s+/g, '_')}_verification_docs.zip`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadZip = async (zipFilePath: string, agentName: string) => {
+    try {
+      // Create a signed URL for the private bucket (valid for 1 hour)
+      const { data, error } = await supabase.storage
+        .from('agent-docs')
+        .createSignedUrl(zipFilePath, 3600);
+
+      if (error) {
+        // If file path is already a full URL (legacy), try direct download
+        if (zipFilePath.startsWith('http')) {
+          window.open(zipFilePath, '_blank');
+          return;
+        }
+        throw error;
+      }
+
+      // Open the signed URL in a new tab for download
+      const link = document.createElement('a');
+      link.href = data.signedUrl;
+      link.download = `${agentName.replace(/\s+/g, '_')}_verification_docs.zip`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error: any) {
+      toast({ 
+        title: 'Download failed', 
+        description: error.message || 'Could not generate download link',
+        variant: 'destructive' 
+      });
+    }
   };
 
   const handleApprove = async (agent: AgentVerification) => {

@@ -124,11 +124,8 @@ export default function AgentVerification() {
 
     if (uploadError) throw uploadError;
 
-    const { data: urlData } = supabase.storage
-      .from('agent-docs')
-      .getPublicUrl(fileName);
-
-    return urlData.publicUrl;
+    // Return the file path for storage (bucket is private, we'll use signed URLs for download)
+    return fileName;
   };
 
   const handleSubmit = async () => {
