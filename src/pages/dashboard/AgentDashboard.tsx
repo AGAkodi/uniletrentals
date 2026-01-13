@@ -1,14 +1,23 @@
 import { Link } from 'react-router-dom';
 import { 
-  Building2, Plus, Calendar, Eye, Clock, CheckCircle
+  Building2, Plus, Calendar, Eye, Clock, CheckCircle, Shield, XCircle, AlertTriangle, FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 import { Property } from '@/types/database';
 import { AgentLayout } from '@/components/agent/AgentLayout';
+
+interface VerificationData {
+  verification_status: 'pending' | 'approved' | 'rejected';
+  agent_id: string | null;
+  zip_file_url: string | null;
+  rejection_reason: string | null;
+  submitted_at: string | null;
+}
 
 export default function AgentDashboard() {
   const { profile } = useAuth();
@@ -25,15 +34,15 @@ export default function AgentDashboard() {
     }
   );
 
-  const { data: verification } = useSWR(
+  const { data: verification } = useSWR<VerificationData | null>(
     profile?.id ? `agent-verification-${profile.id}` : null,
     async () => {
       const { data } = await supabase
         .from('agent_verifications')
-        .select('*')
+        .select('verification_status, agent_id, zip_file_url, rejection_reason, submitted_at')
         .eq('user_id', profile!.id)
         .maybeSingle();
-      return data;
+      return data as VerificationData | null;
     }
   );
 
@@ -53,32 +62,96 @@ export default function AgentDashboard() {
   const approvedCount = properties?.filter(p => p.status === 'approved').length || 0;
   const pendingCount = properties?.filter(p => p.status === 'pending').length || 0;
   const totalViews = properties?.reduce((sum, p) => sum + (p.views_count || 0), 0) || 0;
+  
   const isVerified = verification?.verification_status === 'approved';
+  const isPending = verification?.verification_status === 'pending' && verification?.submitted_at;
+  const isRejected = verification?.verification_status === 'rejected';
+  const needsDocuments = !verification?.zip_file_url && verification?.verification_status !== 'approved';
+
+  const getVerificationConfig = () => {
+    if (isVerified) {
+      return {
+        icon: CheckCircle,
+        color: 'text-accent',
+        bg: 'bg-accent/10',
+        border: 'border-accent',
+        badge: 'bg-accent text-accent-foreground',
+        label: 'Verified Agent',
+        description: verification?.agent_id ? `Agent ID: ${verification.agent_id}` : 'You can now list properties',
+      };
+    }
+    if (isPending) {
+      return {
+        icon: Clock,
+        color: 'text-warning',
+        bg: 'bg-warning/10',
+        border: 'border-warning',
+        badge: 'bg-warning text-warning-foreground',
+        label: 'Pending Review',
+        description: 'Your documents are under review. This usually takes 1-2 business days.',
+      };
+    }
+    if (isRejected) {
+      return {
+        icon: XCircle,
+        color: 'text-destructive',
+        bg: 'bg-destructive/10',
+        border: 'border-destructive',
+        badge: 'bg-destructive text-destructive-foreground',
+        label: 'Verification Rejected',
+        description: verification?.rejection_reason || 'Please review and resubmit your documents.',
+      };
+    }
+    return {
+      icon: AlertTriangle,
+      color: 'text-warning',
+      bg: 'bg-warning/10',
+      border: 'border-warning',
+      badge: 'bg-warning text-warning-foreground',
+      label: 'Documents Required',
+      description: 'Upload your verification documents to start listing properties.',
+    };
+  };
+
+  const verificationConfig = getVerificationConfig();
+  const StatusIcon = verificationConfig.icon;
 
   return (
     <AgentLayout title="Dashboard">
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Verification Alert */}
-        {!isVerified && (
-          <Card className="border-warning bg-warning/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-full bg-warning/20 flex items-center justify-center">
-                  <Clock className="icon-md icon-warning" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold">Account Pending Verification</p>
-                  <p className="text-sm text-muted-foreground">
-                    Upload your verification documents to get approved and list properties.
-                  </p>
-                </div>
-                <Button variant="outline" asChild>
-                  <Link to="/agent/verification">Upload Documents</Link>
-                </Button>
+        {/* Prominent Verification Status Badge */}
+        <Card className={`border-2 ${verificationConfig.border} ${verificationConfig.bg}`}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className={`h-14 w-14 rounded-full ${verificationConfig.bg} flex items-center justify-center`}>
+                <StatusIcon className={`h-7 w-7 ${verificationConfig.color}`} />
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-bold text-lg">{verificationConfig.label}</h3>
+                  <Badge className={verificationConfig.badge}>
+                    {isVerified ? 'Active' : isPending ? 'Under Review' : isRejected ? 'Action Required' : 'Incomplete'}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground">{verificationConfig.description}</p>
+                {isVerified && verification?.agent_id && (
+                  <div className="mt-2 inline-flex items-center gap-2 bg-background/50 rounded-lg px-3 py-1.5 border">
+                    <Shield className="h-4 w-4 text-accent" />
+                    <span className="font-mono font-bold text-accent">{verification.agent_id}</span>
+                  </div>
+                )}
+              </div>
+              {!isVerified && (
+                <Button asChild variant={isRejected ? 'destructive' : 'default'}>
+                  <Link to="/agent/verification">
+                    <FileText className="h-4 w-4 mr-2" />
+                    {needsDocuments ? 'Upload Documents' : 'View Status'}
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
