@@ -103,23 +103,25 @@ export default function AgentSignup() {
       return;
     }
 
+    // Update the verification record with additional info (trigger creates the base record)
     const { data: { user } } = await supabase.auth.getUser();
     
     if (user) {
-      await supabase.from('agent_verifications').insert({
-        user_id: user.id,
-        company_name: formData.companyName || null,
-        office_address: formData.officeAddress,
-        verification_status: 'pending',
-      });
+      // Update the verification record that was created by trigger
+      await supabase.from('agent_verifications')
+        .update({
+          company_name: formData.companyName || null,
+          office_address: formData.officeAddress,
+        })
+        .eq('user_id', user.id);
     }
 
     setLoading(false);
     toast({ 
       title: 'Account created!', 
-      description: 'Your agent account is pending verification. You can upload documents from your dashboard.' 
+      description: 'Your agent account is pending verification. Please upload your verification documents.' 
     });
-    navigate('/agent/dashboard');
+    navigate('/agent/verification');
   };
 
   const handleGoogleSignup = async () => {
