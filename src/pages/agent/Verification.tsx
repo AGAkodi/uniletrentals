@@ -149,19 +149,32 @@ export default function AgentVerification() {
 
     try {
       // Create ZIP and upload
-      const zipUrl = await createZipAndUpload();
+      const zipFilePath = await createZipAndUpload();
 
       // Update verification record
       const { error } = await supabase
         .from('agent_verifications')
         .update({
-          zip_file_url: zipUrl,
+          zip_file_url: zipFilePath,
           verification_status: 'pending',
           submitted_at: new Date().toISOString(),
         })
         .eq('user_id', profile.id);
 
       if (error) throw error;
+
+      // Send notification to admins
+      try {
+        await supabase.functions.invoke('send-verification-email', {
+          body: {
+            email: profile.email,
+            name: profile.full_name,
+            status: 'submitted',
+          }
+        });
+      } catch (emailError) {
+        console.log('Admin notification failed, but documents were submitted successfully');
+      }
 
       // Refresh the data
       mutate(`agent-verification-${profile.id}`);

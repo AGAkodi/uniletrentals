@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,7 +11,7 @@ const corsHeaders = {
 interface VerificationEmailRequest {
   email: string;
   name: string;
-  status: 'approved' | 'rejected';
+  status: 'approved' | 'rejected' | 'submitted';
   agentId?: string;
   rejectionReason?: string;
 }
@@ -87,6 +88,103 @@ const handler = async (req: Request): Promise<Response> => {
         </body>
         </html>
       `;
+    } else if (status === 'submitted') {
+      // Email to admin when agent submits documents
+      subject = "🔔 New Agent Verification Submission";
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">📋 New Verification Request</h1>
+          </div>
+          <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb; border-top: none;">
+            <p style="font-size: 18px; margin-top: 0;">Hello Admin,</p>
+            <p>A new agent has submitted verification documents for review.</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0;"><strong>Agent Name:</strong> ${name}</p>
+              <p style="margin: 0;"><strong>Email:</strong> ${email}</p>
+            </div>
+            
+            <h3 style="color: #1f2937; margin-top: 30px;">Action Required:</h3>
+            <ul style="padding-left: 20px;">
+              <li style="margin-bottom: 10px;">Review the submitted documents</li>
+              <li style="margin-bottom: 10px;">Verify the agent's identity</li>
+              <li style="margin-bottom: 10px;">Approve or reject the verification</li>
+            </ul>
+            
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="https://unilet.lovable.app/admin/verify-agents" style="background: #3b82f6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Review Verification</a>
+            </div>
+            
+            <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
+              Please review this verification request as soon as possible.
+            </p>
+          </div>
+          <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 20px;">
+            This email was sent by UNILET Admin System.
+          </p>
+        </body>
+        </html>
+      `;
+
+      // For submission notifications, we need to send to admin emails
+      // First, fetch admin emails from the database
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+      if (supabaseUrl && supabaseServiceKey) {
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        
+        // Get all admin emails
+        const { data: admins } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin');
+
+        if (admins && admins.length > 0) {
+          const adminIds = admins.map(a => a.user_id);
+          const { data: adminProfiles } = await supabase
+            .from('profiles')
+            .select('email')
+            .in('id', adminIds);
+
+          if (adminProfiles && adminProfiles.length > 0) {
+            const adminEmails = adminProfiles.map(p => p.email).filter(Boolean);
+            
+            if (adminEmails.length > 0) {
+              const emailResponse = await resend.emails.send({
+                from: "UNILET <onboarding@resend.dev>",
+                to: adminEmails,
+                subject: subject,
+                html: htmlContent,
+              });
+
+              console.log("Admin notification emails sent:", emailResponse);
+              
+              return new Response(JSON.stringify(emailResponse), {
+                status: 200,
+                headers: { "Content-Type": "application/json", ...corsHeaders },
+              });
+            }
+          }
+        }
+      }
+
+      // If we couldn't find admins, log and return success
+      console.log("No admin emails found or couldn't fetch them");
+      return new Response(
+        JSON.stringify({ message: "No admin emails to notify" }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     } else {
       subject = "Verification Update - Action Required";
       htmlContent = `
