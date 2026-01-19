@@ -6,11 +6,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { AdminRoute } from "@/components/auth/AdminRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import AgentSignup from "./pages/auth/AgentSignup";
+import CheckEmail from "./pages/auth/CheckEmail";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import CompleteStudentProfile from "./pages/auth/CompleteStudentProfile";
@@ -33,6 +35,8 @@ import SetupAdmin from "./pages/admin/SetupAdmin";
 import ManageAdmins from "./pages/admin/ManageAdmins";
 import ManageSharedRentals from "./pages/admin/ManageSharedRentals";
 import ManageAgents from "./pages/admin/ManageAgents";
+import ManageBlogs from "./pages/admin/ManageBlogs";
+import EditBlog from "./pages/admin/EditBlog";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import SavedProperties from "./pages/student/SavedProperties";
@@ -61,6 +65,7 @@ const App = () => (
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/signup" element={<Signup />} />
                 <Route path="/auth/agent-signup" element={<AgentSignup />} />
+                <Route path="/auth/check-email" element={<CheckEmail />} />
                 <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/reset-password" element={<ResetPassword />} />
                 <Route path="/auth/complete-student-profile" element={<CompleteStudentProfile />} />
@@ -76,7 +81,7 @@ const App = () => (
                 <Route path="/student/compare" element={<CompareProperties />} />
                 <Route path="/student/blog" element={<StudentBlog />} />
                 <Route path="/notifications" element={<Notifications />} />
-                
+
                 {/* Agent Routes */}
                 <Route path="/agent/dashboard" element={<AgentDashboard />} />
                 <Route path="/agent/profile" element={<AgentProfile />} />
@@ -86,18 +91,65 @@ const App = () => (
                 <Route path="/agent/listings" element={<AgentListings />} />
                 <Route path="/agent/analytics" element={<AgentAnalytics />} />
                 <Route path="/agent/edit-property/:id" element={<EditProperty />} />
-                
+
                 {/* Admin Routes */}
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/profile" element={<AdminProfile />} />
-                <Route path="/admin/verify-agents" element={<VerifyAgents />} />
-                <Route path="/admin/approve-listings" element={<ApproveListings />} />
-                <Route path="/admin/reports" element={<AdminReports />} />
-                <Route path="/admin/manage-admins" element={<ManageAdmins />} />
-                <Route path="/admin/manage-agents" element={<ManageAgents />} />
-                <Route path="/admin/shared-rentals" element={<ManageSharedRentals />} />
+                <Route path="/admin/dashboard" element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                } />
+                <Route path="/admin/profile" element={
+                  <AdminRoute>
+                    <AdminProfile />
+                  </AdminRoute>
+                } />
+                <Route path="/admin/verify-agents" element={
+                  <AdminRoute requiredPermission="manage_agents">
+                    <VerifyAgents />
+                  </AdminRoute>
+                } />
+                <Route path="/admin/approve-listings" element={
+                  <AdminRoute requiredPermission="manage_listings">
+                    <ApproveListings />
+                  </AdminRoute>
+                } />
+                <Route path="/admin/reports" element={
+                  <AdminRoute requiredPermission="manage_reports">
+                    <AdminReports />
+                  </AdminRoute>
+                } />
+                <Route path="/admin/manage-admins" element={
+                  <AdminRoute requiredPermission="manage_admins">
+                    <ManageAdmins />
+                  </AdminRoute>
+                } />
+                <Route path="/admin/manage-agents" element={
+                  <AdminRoute requiredPermission="manage_agents">
+                    <ManageAgents />
+                  </AdminRoute>
+                } />
+                <Route path="/admin/shared-rentals" element={
+                  <AdminRoute requiredPermission="manage_listings">
+                    <ManageSharedRentals />
+                  </AdminRoute>
+                } />
+                <Route path="/admin/manage-blogs" element={
+                  <AdminRoute requiredPermission="manage_blogs">
+                    <ManageBlogs />
+                  </AdminRoute>
+                } />
+                <Route path="/admin/create-blog" element={
+                  <AdminRoute requiredPermission="manage_blogs">
+                    <EditBlog />
+                  </AdminRoute>
+                } />
+                <Route path="/admin/edit-blog/:id" element={
+                  <AdminRoute requiredPermission="manage_blogs">
+                    <EditBlog />
+                  </AdminRoute>
+                } />
                 <Route path="/setup-admin" element={<SetupAdmin />} />
-                
+
                 {/* Public Routes */}
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />

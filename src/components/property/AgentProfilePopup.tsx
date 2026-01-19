@@ -76,8 +76,8 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
     }
   );
 
-  const averageRating = reviews?.length 
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
+  const averageRating = reviews?.length
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : 0;
 
   const handleSubmitReview = async () => {
@@ -92,7 +92,7 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
     }
 
     setIsSubmitting(true);
-    
+
     const { error } = await supabase
       .from('reviews')
       .insert({
@@ -128,7 +128,7 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
         <DialogHeader className="pb-2">
           <DialogTitle className="text-sm">Agent Profile</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-3">
           {/* Agent Info */}
           <div className="flex items-center gap-3">
@@ -179,9 +179,9 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
                     <span className="font-medium truncate">{(review.profiles as any)?.full_name || 'User'}</span>
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Star 
-                          key={star} 
-                          className={`h-2.5 w-2.5 ${star <= review.rating ? 'fill-warning text-warning' : 'text-muted-foreground'}`} 
+                        <Star
+                          key={star}
+                          className={`h-2.5 w-2.5 ${star <= review.rating ? 'fill-warning text-warning' : 'text-muted-foreground'}`}
                         />
                       ))}
                     </div>
@@ -207,12 +207,11 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
                   onMouseLeave={() => setHoverRating(0)}
                   className="focus:outline-none"
                 >
-                  <Star 
-                    className={`h-5 w-5 transition-colors ${
-                      star <= (hoverRating || rating) 
-                        ? 'fill-warning text-warning' 
-                        : 'text-muted-foreground hover:text-warning/50'
-                    }`} 
+                  <Star
+                    className={`h-5 w-5 transition-colors ${star <= (hoverRating || rating)
+                      ? 'fill-warning text-warning'
+                      : 'text-muted-foreground hover:text-warning/50'
+                      }`}
                   />
                 </button>
               ))}
@@ -224,8 +223,8 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
               rows={2}
               className="text-xs min-h-0"
             />
-            <Button 
-              onClick={handleSubmitReview} 
+            <Button
+              onClick={handleSubmitReview}
               disabled={isSubmitting || rating === 0}
               size="sm"
               className="w-full mt-2"

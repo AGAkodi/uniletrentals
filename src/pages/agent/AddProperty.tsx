@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
-import { 
-  Home, ImagePlus, MapPin, Bed, Bath, DollarSign, 
+import {
+  Home, ImagePlus, MapPin, Bed, Bath, DollarSign,
   X, Plus, ChevronLeft, Loader2, AlertTriangle, Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,7 @@ export default function AddProperty() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -88,8 +88,8 @@ export default function AddProperty() {
   };
 
   const toggleAmenity = (amenity: string) => {
-    setSelectedAmenities(prev => 
-      prev.includes(amenity) 
+    setSelectedAmenities(prev =>
+      prev.includes(amenity)
         ? prev.filter(a => a !== amenity)
         : [...prev, amenity]
     );
@@ -115,7 +115,7 @@ export default function AddProperty() {
     });
 
     setImages(prev => [...prev, ...validFiles]);
-    
+
     validFiles.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -132,11 +132,11 @@ export default function AddProperty() {
 
   const uploadImages = async (): Promise<string[]> => {
     const uploadedUrls: string[] = [];
-    
+
     for (const file of images) {
       const fileExt = file.name.split('.').pop();
       const fileName = `${profile?.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('property-images')
         .upload(fileName, file);
@@ -149,7 +149,7 @@ export default function AddProperty() {
 
       uploadedUrls.push(urlData.publicUrl);
     }
-    
+
     return uploadedUrls;
   };
 
@@ -164,10 +164,10 @@ export default function AddProperty() {
 
     // Double check verification status
     if (!isVerified) {
-      toast({ 
-        title: 'Account not verified', 
+      toast({
+        title: 'Account not verified',
         description: 'You need to be verified before adding properties.',
-        variant: 'destructive' 
+        variant: 'destructive'
       });
       return;
     }
@@ -222,16 +222,16 @@ export default function AddProperty() {
 
       if (error) throw error;
 
-      toast({ 
-        title: 'Property listed successfully!', 
-        description: 'Your listing is now live and visible to students.' 
+      toast({
+        title: 'Property listed successfully!',
+        description: 'Your listing is now live and visible to students.'
       });
       navigate('/agent/dashboard');
     } catch (error: any) {
-      toast({ 
-        title: 'Failed to create property', 
+      toast({
+        title: 'Failed to create property',
         description: error.message,
-        variant: 'destructive' 
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
@@ -252,7 +252,7 @@ export default function AddProperty() {
     return (
       <div className="min-h-screen bg-secondary/30">
         <Navbar />
-        
+
         <div className="max-w-2xl mx-auto px-4 py-8">
           <Button
             variant="ghost"
@@ -294,7 +294,7 @@ export default function AddProperty() {
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
-      
+
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Button
           variant="ghost"
@@ -351,7 +351,7 @@ export default function AddProperty() {
                 <div className="space-y-2">
                   <Label htmlFor="price">Price (₦/year)</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">₦</span>
                     <Input
                       id="price"
                       name="price"
@@ -359,7 +359,7 @@ export default function AddProperty() {
                       placeholder="250000"
                       value={formData.price}
                       onChange={handleChange}
-                      className="pl-10"
+                      className="pl-8"
                     />
                   </div>
                   {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
@@ -512,11 +512,10 @@ export default function AddProperty() {
                     key={amenity}
                     type="button"
                     onClick={() => toggleAmenity(amenity)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      selectedAmenities.includes(amenity)
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedAmenities.includes(amenity)
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                    }`}
+                      }`}
                   >
                     {amenity}
                   </button>
@@ -547,7 +546,7 @@ export default function AddProperty() {
                     </button>
                   </div>
                 ))}
-                
+
                 {images.length < 10 && (
                   <label className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
                     <Plus className="h-8 w-8 text-muted-foreground" />

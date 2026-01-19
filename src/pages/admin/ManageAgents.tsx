@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { 
-  Users, Shield, Ban, Clock, CheckCircle, XCircle, 
+import {
+  Users, Shield, Ban, Clock, CheckCircle, XCircle,
   Search, AlertTriangle, Calendar, Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
+import { sendEmail } from '@/lib/email';
 import { useAuth } from '@/lib/auth';
 import { format, addDays, addWeeks, addMonths, isPast } from 'date-fns';
 
@@ -149,6 +150,19 @@ function ManageAgentsContent() {
         link: '/agent/profile',
       });
 
+      try {
+        await sendEmail({
+          to: selectedAgent.user.email,
+          name: selectedAgent.user.full_name,
+          type: 'suspension',
+          status: 'suspended',
+          reason: suspensionReason,
+          endDate: suspendedUntil.toISOString()
+        });
+      } catch (e) {
+        console.error('Failed to send suspension email:', e);
+      }
+
       toast.success(`Agent ${selectedAgent.user?.full_name} has been suspended`);
       setSuspendDialogOpen(false);
       setSuspensionReason('');
@@ -189,6 +203,17 @@ function ManageAgentsContent() {
         message: 'Your agent account suspension has been lifted. You can now access all agent features.',
         link: '/agent/dashboard',
       });
+
+      try {
+        await sendEmail({
+          to: selectedAgent.user.email,
+          name: selectedAgent.user.full_name,
+          type: 'suspension',
+          status: 'lifted'
+        });
+      } catch (e) {
+        console.error('Failed to send suspension lifted email:', e);
+      }
 
       toast.success(`Suspension lifted for ${selectedAgent.user?.full_name}`);
       setLiftSuspensionDialogOpen(false);
@@ -360,7 +385,7 @@ function ManageAgentsContent() {
                           <div>
                             <div className="flex items-center gap-2">
                               <p className="font-semibold">{agent.user?.full_name}</p>
-                              <Badge 
+                              <Badge
                                 variant={status.variant === 'success' ? 'default' : status.variant === 'warning' ? 'outline' : 'destructive'}
                               >
                                 {status.label}

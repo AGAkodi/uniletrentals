@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { 
-  MapPin, Bed, Bath, Heart, Share2, Flag, CheckCircle, 
+import useSWR from 'swr';
+import {
+  MapPin, Bed, Bath, Heart, Share2, Flag, CheckCircle,
   Star, MessageCircle, Calendar, ChevronLeft, ChevronRight, ExternalLink, Lock
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
@@ -15,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AgentProfilePopup } from '@/components/property/AgentProfilePopup';
 import { BookingDialog } from '@/components/property/BookingDialog';
+import { ReportPropertyDialog } from '@/components/property/ReportPropertyDialog';
 
 export default function PropertyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -65,7 +67,7 @@ export default function PropertyDetail() {
       toast({ title: 'Please login', description: 'You need to be logged in to save properties.', variant: 'destructive' });
       return;
     }
-    
+
     if (isSaved) {
       await supabase.from('saved_properties').delete().eq('user_id', user.id).eq('property_id', property?.id);
       setIsSaved(false);
@@ -76,6 +78,39 @@ export default function PropertyDetail() {
       toast({ title: 'Saved!', description: 'Property added to your saved list.' });
     }
   };
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: property.title,
+          text: `Check out this property: ${property.title}`,
+          url: window.location.href,
+        });
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({ title: 'Link copied', description: 'Property link copied to clipboard.' });
+      }
+    } catch (error) {
+      console.log('Error sharing:', error);
+    }
+  };
+
+  // Fetch agent's reviews for the rating
+  const { data: agentRating } = useSWR(
+    property?.agent_id ? `agent-rating-${property.agent_id}` : null,
+    async () => {
+      const { data } = await supabase
+        .from('reviews')
+        .select('rating')
+        .eq('agent_id', property.agent_id);
+
+      if (!data || data.length === 0) return { average: 0, count: 0 };
+
+      const average = data.reduce((acc, curr) => acc + curr.rating, 0) / data.length;
+      return { average, count: data.length };
+    }
+  );
 
   const images = property?.images?.length ? property.images : [
     'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop&q=60'
@@ -133,7 +168,7 @@ export default function PropertyDetail() {
               className="w-full h-full object-cover"
             />
           </div>
-          
+
           {images.length > 1 && (
             <>
               <button
@@ -165,12 +200,18 @@ export default function PropertyDetail() {
             <Button size="icon" variant="secondary" onClick={handleSave}>
               <Heart className={`h-5 w-5 ${isSaved ? 'fill-destructive text-destructive' : ''}`} />
             </Button>
-            <Button size="icon" variant="secondary">
+            <Button size="icon" variant="secondary" onClick={handleShare}>
               <Share2 className="h-5 w-5" />
             </Button>
-            <Button size="icon" variant="secondary">
-              <Flag className="h-5 w-5" />
-            </Button>
+            <ReportPropertyDialog
+              propertyId={property.id}
+              propertyTitle={property.title}
+              agentId={property.agent_id}
+            >
+              <Button size="icon" variant="secondary">
+                <Flag className="h-5 w-5" />
+              </Button>
+            </ReportPropertyDialog>
           </div>
         </div>
 
@@ -258,7 +299,7 @@ export default function PropertyDetail() {
                   <CardTitle>Location</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div 
+                  <div
                     className="aspect-video rounded-lg bg-secondary flex items-center justify-center cursor-pointer hover:bg-secondary/80 transition-colors"
                     onClick={handleMaps}
                   >
@@ -284,7 +325,7 @@ export default function PropertyDetail() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {property.agent && (
-                  <AgentProfilePopup agent={property.agent}>
+                  <AgentProfilePopup agent={property.agent} propertyId={property.id}>
                     <div className="flex items-center gap-4 cursor-pointer hover:bg-secondary/50 rounded-lg p-2 -m-2 transition-colors">
                       <Avatar className="h-14 w-14">
                         <AvatarImage src={property.agent.avatar_url || ''} />
@@ -306,15 +347,23 @@ export default function PropertyDetail() {
 
                 <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="h-5 w-5 fill-warning text-warning" />
+                    <Star
+                      key={star}
+                      className={`h-5 w-5 ${star <= Math.round(agentRating?.average || 0)
+                          ? 'fill-warning text-warning'
+                          : 'text-muted-foreground/30'
+                        }`}
+                    />
                   ))}
-                  <span className="text-sm text-muted-foreground">(5.0)</span>
+                  <span className="text-sm text-muted-foreground">
+                    ({(agentRating?.average || 0).toFixed(1)})
+                  </span>
                 </div>
 
                 {hasBooked ? (
-                  <Button 
-                    variant="whatsapp" 
-                    className="w-full" 
+                  <Button
+                    variant="whatsapp"
+                    className="w-full"
                     size="lg"
                     onClick={handleWhatsApp}
                     disabled={!property.whatsapp_number}
@@ -323,9 +372,9 @@ export default function PropertyDetail() {
                     Contact on WhatsApp
                   </Button>
                 ) : (
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
+                  <Button
+                    variant="outline"
+                    className="w-full"
                     size="lg"
                     disabled
                   >

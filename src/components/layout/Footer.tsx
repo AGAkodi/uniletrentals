@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, Instagram, Twitter } from 'lucide-react';
 import logo from '@/assets/logo.svg';
 
 export function Footer() {
@@ -67,15 +67,27 @@ export function Footer() {
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
                 <Mail className="icon-sm" />
-                support@unilet.com
+                <a href="mailto:support@uniletrentals.com" className="hover:text-background transition-colors">
+                  support@uniletrentals.com
+                </a>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="icon-sm" />
-                +234 800 123 4567
+                <a href="tel:+2349056096821" className="hover:text-background transition-colors">
+                  +234 9056096821
+                </a>
               </li>
               <li className="flex items-center gap-2">
-                <MapPin className="icon-sm" />
-                Lagos, Nigeria
+                <Instagram className="icon-sm" />
+                <a href="https://www.instagram.com/uniletrentals?igsh=Y3FzdHdkenkxYTBt" target="_blank" rel="noopener noreferrer" className="hover:text-background transition-colors">
+                  Instagram
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
+                <Twitter className="icon-sm" />
+                <a href="https://x.com/UniletRentals" target="_blank" rel="noopener noreferrer" className="hover:text-background transition-colors">
+                  X (Twitter)
+                </a>
               </li>
             </ul>
           </div>

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
+import {
   Building2, Plus, Eye, Edit, Trash2, MoreHorizontal,
-  Search, Filter
+  Search, Filter, Power, Ban
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -53,7 +53,7 @@ export default function AgentListings() {
         .select('*')
         .eq('agent_id', profile!.id)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data as Property[];
     }
@@ -80,10 +80,10 @@ export default function AgentListings() {
       toast({ title: 'Property deleted successfully' });
       mutate(`agent-all-properties-${profile?.id}`);
     } catch (error: any) {
-      toast({ 
-        title: 'Failed to delete property', 
+      toast({
+        title: 'Failed to delete property',
         description: error.message,
-        variant: 'destructive' 
+        variant: 'destructive'
       });
     } finally {
       setDeleteDialogOpen(false);
@@ -91,15 +91,42 @@ export default function AgentListings() {
     }
   };
 
+  const handleToggleAvailability = async (property: Property) => {
+    // Only allow toggling for approved or unavailable properties
+    if (property.status !== 'approved' && property.status !== 'unavailable') return;
+
+    const newStatus = property.status === 'unavailable' ? 'approved' : 'unavailable';
+    const actionText = newStatus === 'unavailable' ? 'marked as unavailable' : 'marked as available';
+
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .update({ status: newStatus })
+        .eq('id', property.id);
+
+      if (error) throw error;
+
+      toast({ title: `Property ${actionText}` });
+      mutate(`agent-all-properties-${profile?.id}`);
+    } catch (error: any) {
+      toast({
+        title: 'Failed to update status',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
   const approvedCount = properties?.filter(p => p.status === 'approved').length || 0;
   const pendingCount = properties?.filter(p => p.status === 'pending').length || 0;
   const rejectedCount = properties?.filter(p => p.status === 'rejected').length || 0;
+  const unavailableCount = properties?.filter(p => p.status === 'unavailable').length || 0;
 
   return (
     <AgentLayout title="My Listings">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Total Listings</p>
@@ -122,6 +149,12 @@ export default function AgentListings() {
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Rejected</p>
               <p className="text-2xl font-bold text-destructive">{rejectedCount}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground">Unavailable</p>
+              <p className="text-2xl font-bold text-muted-foreground">{unavailableCount}</p>
             </CardContent>
           </Card>
         </div>
@@ -150,6 +183,7 @@ export default function AgentListings() {
                 <SelectItem value="approved">Approved</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="unavailable">Unavailable</SelectItem>
               </SelectContent>
             </Select>
             <Button asChild>
@@ -184,7 +218,7 @@ export default function AgentListings() {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    
+
                     {/* Details */}
                     <div className="flex-1 p-4">
                       <div className="flex items-start justify-between gap-4">
@@ -192,17 +226,17 @@ export default function AgentListings() {
                           <h3 className="font-semibold text-lg truncate">{property.title}</h3>
                           <p className="text-sm text-muted-foreground">{property.address}, {property.city}</p>
                           <p className="text-lg font-bold mt-1">₦{property.price.toLocaleString()}/year</p>
-                          
+
                           <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                             <span>{property.bedrooms} bed</span>
                             <span>{property.bathrooms} bath</span>
                             <span>{property.views_count || 0} views</span>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                           <span className={`status-${property.status}`}>{property.status}</span>
-                          
+
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon">
@@ -222,6 +256,23 @@ export default function AgentListings() {
                                   Edit
                                 </Link>
                               </DropdownMenuItem>
+
+                              {(property.status === 'approved' || property.status === 'unavailable') && (
+                                <DropdownMenuItem onClick={() => handleToggleAvailability(property)}>
+                                  {property.status === 'unavailable' ? (
+                                    <>
+                                      <Power className="h-4 w-4 mr-2" />
+                                      Mark as Available
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Ban className="h-4 w-4 mr-2" />
+                                      Mark as Unavailable
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                              )}
+
                               <DropdownMenuItem
                                 className="text-destructive"
                                 onClick={() => {
@@ -248,7 +299,7 @@ export default function AgentListings() {
               <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No properties found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchQuery || statusFilter !== 'all' 
+                {searchQuery || statusFilter !== 'all'
                   ? 'Try adjusting your filters'
                   : 'Start by adding your first property listing'}
               </p>
@@ -280,6 +331,6 @@ export default function AgentListings() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </AgentLayout>
+    </AgentLayout >
   );
 }

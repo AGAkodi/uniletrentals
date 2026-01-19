@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile, UserRole } from '@/types/database';
+import { sendEmail } from './email';
 
 // Helper function to get dashboard route based on role
 export function getDashboardRoute(role: UserRole | undefined): string {
@@ -42,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           setTimeout(() => {
             fetchProfile(session.user.id);
@@ -74,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .select('*')
         .eq('id', userId)
         .maybeSingle();
-      
+
       if (!error && data) {
         console.log('Fetched profile:', data.email, 'role:', data.role);
         setProfile(data as Profile);
@@ -90,8 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, metadata: Record<string, unknown>) => {
     const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -99,7 +100,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data: metadata,
       },
     });
-    
+
+    if (!error && data?.user) {
+      try {
+        await sendEmail({
+          to: email,
+          name: metadata?.full_name as string || 'User',
+          type: 'welcome',
+          role: metadata?.role as string || 'student',
+        });
+      } catch (e) {
+        console.error('Failed to send welcome email:', e);
+      }
+    }
+
     return { error: error as Error | null };
   };
 
@@ -108,11 +122,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
     });
-    
+
     if (error) {
       return { error: error as Error | null };
     }
-    
+
     // Fetch the user's profile to get their role
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -121,28 +135,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .select('role')
         .eq('id', user.id)
         .maybeSingle();
-      
+
       if (profileError) {
         console.error('Error fetching profile on login:', profileError);
       }
-      
+
       console.log('Login successful, user role:', profileData?.role);
+      // Fetch fresh profile to get permissions
+      if (user.id) {
+        await fetchProfile(user.id);
+      }
       return { error: null, role: profileData?.role as UserRole | undefined };
     }
-    
+
     return { error: null };
   };
 
   const signInWithGoogle = async () => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectUrl,
       },
     });
-    
+
     return { error: error as Error | null };
   };
 

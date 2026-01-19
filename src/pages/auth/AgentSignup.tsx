@@ -42,7 +42,7 @@ export default function AgentSignup() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signUp, signInWithGoogle } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     fullName: '',
     companyName: '',
@@ -68,7 +68,7 @@ export default function AgentSignup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    
+
     const result = agentSignupSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -80,7 +80,7 @@ export default function AgentSignup() {
     }
 
     setLoading(true);
-    
+
     const metadata: Record<string, unknown> = {
       full_name: formData.fullName,
       phone: formData.phone,
@@ -105,7 +105,7 @@ export default function AgentSignup() {
 
     // Update the verification record with additional info (trigger creates the base record)
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (user) {
       // Update the verification record that was created by trigger
       await supabase.from('agent_verifications')
@@ -117,26 +117,26 @@ export default function AgentSignup() {
     }
 
     setLoading(false);
-    toast({ 
-      title: 'Account created!', 
-      description: 'Your agent account is pending verification. Please upload your verification documents.' 
+    toast({
+      title: 'Account created!',
+      description: 'Your agent account is pending verification. Please upload your verification documents.'
     });
-    navigate('/agent/verification');
+    navigate('/auth/check-email');
   };
 
-  const handleGoogleSignup = async () => {
-    setGoogleLoading(true);
-    const { error } = await signInWithGoogle();
-    setGoogleLoading(false);
-    
-    if (error) {
-      toast({
-        title: 'Google Sign-in Failed',
-        description: error.message || 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
+  // const handleGoogleSignup = async () => {
+  //   setGoogleLoading(true);
+  //   const { error } = await signInWithGoogle();
+  //   setGoogleLoading(false);
+
+  //   if (error) {
+  //     toast({
+  //       title: 'Google Sign-in Failed',
+  //       description: error.message || 'Something went wrong. Please try again.',
+  //       variant: 'destructive',
+  //     });
+  //   }
+  // };
 
   return (
     <div className="min-h-screen flex">
@@ -158,7 +158,7 @@ export default function AgentSignup() {
           </div>
 
           {/* Google Sign-in Button */}
-          <Button
+          {/* <Button
             type="button"
             variant="outline"
             className="w-full"
@@ -189,7 +189,7 @@ export default function AgentSignup() {
               </svg>
             )}
             Continue with Google
-          </Button>
+          </Button> */}
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">

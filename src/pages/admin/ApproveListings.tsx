@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  ChevronLeft, Building2, CheckCircle, XCircle, Clock, 
+import {
+  ChevronLeft, Building2, CheckCircle, XCircle, Clock,
   MapPin, Bed, Bath, Eye, Loader2, MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import useSWR, { mutate } from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { Property } from '@/types/database';
+import { sendEmail } from '@/lib/email';
 
 interface PropertyWithAgent extends Omit<Property, 'agent'> {
   agent: {
@@ -41,7 +42,7 @@ export default function ApproveListings() {
         .select('*, agent:profiles!properties_agent_id_fkey(*)')
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data as PropertyWithAgent[];
     }
@@ -69,6 +70,19 @@ export default function ApproveListings() {
         message: `Your property "${property.title}" has been approved and is now visible to students.`,
         type: 'success',
       });
+
+      if (property.agent?.email) {
+        try {
+          await sendEmail({
+            to: property.agent.email,
+            name: property.agent.full_name,
+            type: 'listing_approved',
+            listingTitle: property.title
+          });
+        } catch (e) {
+          console.error("Failed to send approval email", e);
+        }
+      }
 
       toast({ title: 'Listing approved!' });
       mutate('all-pending-properties');
@@ -125,7 +139,7 @@ export default function ApproveListings() {
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
-      
+
       <div className="max-w-6xl mx-auto px-4 py-8">
         <Button variant="ghost" asChild className="mb-6">
           <Link to="/admin/dashboard">
@@ -153,8 +167,8 @@ export default function ApproveListings() {
             {pendingProperties.map((property) => (
               <Card key={property.id} className="overflow-hidden">
                 <div className="aspect-video relative">
-                  <img 
-                    src={property.images?.[0] || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'} 
+                  <img
+                    src={property.images?.[0] || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'}
                     alt={property.title}
                     className="w-full h-full object-cover"
                   />
@@ -183,10 +197,10 @@ export default function ApproveListings() {
                   <p className="text-sm text-muted-foreground mb-4">
                     by {property.agent?.full_name}
                   </p>
-                  
+
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button 
+                      <Button
                         className="w-full"
                         onClick={() => {
                           setSelectedProperty(property);
@@ -201,14 +215,14 @@ export default function ApproveListings() {
                       <DialogHeader>
                         <DialogTitle>Review: {property.title}</DialogTitle>
                       </DialogHeader>
-                      
+
                       <div className="space-y-6 py-4">
                         {/* Image Gallery */}
                         {property.images && property.images.length > 0 && (
                           <div>
                             <div className="aspect-video rounded-lg overflow-hidden mb-2">
-                              <img 
-                                src={property.images[currentImage]} 
+                              <img
+                                src={property.images[currentImage]}
                                 alt={`Property ${currentImage + 1}`}
                                 className="w-full h-full object-cover"
                               />
@@ -218,9 +232,8 @@ export default function ApproveListings() {
                                 <button
                                   key={i}
                                   onClick={() => setCurrentImage(i)}
-                                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                                    i === currentImage ? 'border-primary' : 'border-transparent'
-                                  }`}
+                                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${i === currentImage ? 'border-primary' : 'border-transparent'
+                                    }`}
                                 >
                                   <img src={img} alt="" className="w-full h-full object-cover" />
                                 </button>
@@ -285,8 +298,8 @@ export default function ApproveListings() {
                         </div>
 
                         <div className="flex gap-3">
-                          <Button 
-                            className="flex-1" 
+                          <Button
+                            className="flex-1"
                             onClick={() => handleApprove(property)}
                             disabled={processing === property.id}
                           >
@@ -297,8 +310,8 @@ export default function ApproveListings() {
                             )}
                             Approve Listing
                           </Button>
-                          <Button 
-                            variant="destructive" 
+                          <Button
+                            variant="destructive"
                             className="flex-1"
                             onClick={() => handleReject(property)}
                             disabled={processing === property.id}

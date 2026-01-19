@@ -40,12 +40,13 @@ const agentMenuItems = [
 
 const adminMenuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
-  { icon: CheckCircle, label: 'Approve Listings', href: '/admin/approve-listings' },
-  { icon: Shield, label: 'Verify Agents', href: '/admin/verify-agents' },
-  { icon: Users, label: 'Manage Agents', href: '/admin/manage-agents' },
-  { icon: Users, label: 'Shared Rentals', href: '/admin/shared-rentals' },
-  { icon: AlertTriangle, label: 'Reports', href: '/admin/reports' },
-  { icon: Users, label: 'Manage Admins', href: '/admin/manage-admins' },
+  { icon: CheckCircle, label: 'Approve Listings', href: '/admin/approve-listings', permission: 'manage_listings' },
+  { icon: Shield, label: 'Verify Agents', href: '/admin/verify-agents', permission: 'manage_agents' },
+  { icon: Users, label: 'Manage Agents', href: '/admin/manage-agents', permission: 'manage_agents' },
+  { icon: Users, label: 'Shared Rentals', href: '/admin/shared-rentals', permission: 'manage_listings' },
+  { icon: FileText, label: 'Manage Blogs', href: '/admin/manage-blogs', permission: 'manage_blogs' },
+  { icon: AlertTriangle, label: 'Reports', href: '/admin/reports', permission: 'manage_reports' },
+  { icon: Users, label: 'Manage Admins', href: '/admin/manage-admins', permission: 'manage_admins' },
   { icon: User, label: 'Profile', href: '/admin/profile' },
 ];
 
@@ -55,12 +56,20 @@ export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get menu items based on role
+  // Get menu items based on role AND permissions
   const getMenuItems = () => {
     if (!profile?.role) return studentMenuItems;
+
     switch (profile.role) {
       case 'admin':
-        return adminMenuItems;
+        // Super Admin sees everything
+        if (profile.permissions?.includes('super_admin')) {
+          return adminMenuItems;
+        }
+        // Others see only what they have permission for (or items with no permission req)
+        return adminMenuItems.filter(item =>
+          !item.permission || profile.permissions?.includes(item.permission)
+        );
       case 'agent':
         return agentMenuItems;
       case 'student':
@@ -113,47 +122,47 @@ export function Navbar() {
                       </Avatar>
                     </button>
                   </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 bg-background border shadow-lg z-50">
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex items-center gap-3 py-2">
-                      <Avatar className="h-10 w-10">
-                        {profile?.avatar_url ? (
-                          <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
-                        ) : null}
-                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                          {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate">{profile?.full_name}</p>
-                        <p className="text-sm text-muted-foreground truncate capitalize">{profile?.role}</p>
+                  <DropdownMenuContent align="end" className="w-64 bg-background border shadow-lg z-50">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex items-center gap-3 py-2">
+                        <Avatar className="h-10 w-10">
+                          {profile?.avatar_url ? (
+                            <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
+                          ) : null}
+                          <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                            {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold truncate">{profile?.full_name}</p>
+                          <p className="text-sm text-muted-foreground truncate capitalize">{profile?.role}</p>
+                        </div>
                       </div>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {menuItems.map((item) => {
-                    const isActive = location.pathname === item.href;
-                    return (
-                      <DropdownMenuItem
-                        key={item.href}
-                        onClick={() => navigate(item.href)}
-                        className={`flex items-center gap-3 cursor-pointer ${isActive ? 'bg-secondary' : ''}`}
-                      >
-                        <item.icon className="icon-sm icon-muted" />
-                        <span>{item.label}</span>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleSignOut}
-                    className="flex items-center gap-3 text-destructive cursor-pointer focus:text-destructive"
-                  >
-                    <LogOut className="icon-sm" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {menuItems.map((item) => {
+                      const isActive = location.pathname === item.href;
+                      return (
+                        <DropdownMenuItem
+                          key={item.href}
+                          onClick={() => navigate(item.href)}
+                          className={`flex items-center gap-3 cursor-pointer ${isActive ? 'bg-secondary' : ''}`}
+                        >
+                          <item.icon className="icon-sm icon-muted" />
+                          <span>{item.label}</span>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="flex items-center gap-3 text-destructive cursor-pointer focus:text-destructive"
+                    >
+                      <LogOut className="icon-sm" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
           </div>

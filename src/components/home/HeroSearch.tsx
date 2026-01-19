@@ -22,7 +22,7 @@ export function HeroSearch() {
     if (location) params.set('location', location);
     if (maxPrice) params.set('maxPrice', maxPrice);
     if (bedrooms) params.set('bedrooms', bedrooms);
-    
+
     navigate(`/search?${params.toString()}`);
   };
 
@@ -38,7 +38,7 @@ export function HeroSearch() {
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="City, university, or address"
+                placeholder="City and address"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 className="pl-10"

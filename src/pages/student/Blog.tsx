@@ -19,7 +19,7 @@ export default function StudentBlog() {
       .select('*, author:profiles!blogs_author_id_fkey(*)')
       .eq('published', true)
       .order('published_at', { ascending: false });
-    
+
     if (error) throw error;
     return data as Blog[];
   });

@@ -1,6 +1,6 @@
 export type UserRole = 'student' | 'agent' | 'admin';
 export type VerificationStatus = 'pending' | 'approved' | 'rejected';
-export type ListingStatus = 'pending' | 'approved' | 'rejected';
+export type ListingStatus = 'pending' | 'approved' | 'rejected' | 'unavailable';
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
 
 export interface Profile {
@@ -13,6 +13,7 @@ export interface Profile {
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
+  permissions?: string[];
 }
 
 export interface AgentVerification {

@@ -71,22 +71,7 @@ export function NotificationBell() {
     };
   }, [user?.id]);
 
-  const handleNotificationClick = async (notification: Notification) => {
-    // Mark as read
-    if (!notification.is_read) {
-      await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notification.id);
-    }
 
-    setIsOpen(false);
-
-    // Navigate to link if provided
-    if (notification.link) {
-      navigate(notification.link);
-    }
-  };
 
   const markAllAsRead = async () => {
     if (!user?.id) return;
@@ -152,12 +137,10 @@ export function NotificationBell() {
           ) : (
             <div className="divide-y">
               {notifications.map((notification) => (
-                <button
+                <div
                   key={notification.id}
-                  onClick={() => handleNotificationClick(notification)}
-                  className={`w-full text-left px-4 py-3 hover:bg-secondary/50 transition-colors ${
-                    !notification.is_read ? 'bg-secondary/30' : ''
-                  }`}
+                  className={`w-full text-left px-4 py-3 border-b last:border-0 ${!notification.is_read ? 'bg-secondary/30' : ''
+                    }`}
                 >
                   <div className="flex gap-3">
                     <span className="text-lg">{getTypeIcon(notification.type)}</span>
@@ -176,7 +159,7 @@ export function NotificationBell() {
                       <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
                     )}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           )}
