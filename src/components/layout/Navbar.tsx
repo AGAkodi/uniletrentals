@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { getAvatarUrl, generateAvatarSeed } from '@/lib/avatar';
 import logo from '@/assets/logo.svg';
 
 const studentMenuItems = [
@@ -113,9 +114,13 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <button className="relative" aria-label="Open menu">
                       <Avatar className="h-10 w-10 ring-2 ring-primary/20 hover:ring-primary/50 transition-all cursor-pointer">
-                        {profile?.avatar_url ? (
-                          <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
-                        ) : null}
+                        <AvatarImage 
+                          src={getAvatarUrl(
+                            profile?.avatar_url,
+                            generateAvatarSeed(profile?.full_name, profile?.email, user?.id)
+                          ) || undefined} 
+                          alt={profile?.full_name || 'User'} 
+                        />
                         <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                           {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
                         </AvatarFallback>
@@ -126,9 +131,13 @@ export function Navbar() {
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex items-center gap-3 py-2">
                         <Avatar className="h-10 w-10">
-                          {profile?.avatar_url ? (
-                            <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
-                          ) : null}
+                          <AvatarImage 
+                            src={getAvatarUrl(
+                              profile?.avatar_url,
+                              generateAvatarSeed(profile?.full_name, profile?.email, user?.id)
+                            ) || undefined} 
+                            alt={profile?.full_name || 'User'} 
+                          />
                           <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                             {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
                           </AvatarFallback>
@@ -185,9 +194,13 @@ export function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <button className="relative" aria-label="Open menu">
                     <Avatar className="h-10 w-10 ring-2 ring-primary/20 hover:ring-primary/50 transition-all cursor-pointer">
-                      {profile?.avatar_url ? (
-                        <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
-                      ) : null}
+                      <AvatarImage 
+                        src={getAvatarUrl(
+                          profile?.avatar_url,
+                          generateAvatarSeed(profile?.full_name, profile?.email, user?.id)
+                        ) || undefined} 
+                        alt={profile?.full_name || 'User'} 
+                      />
                       <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                         {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
                       </AvatarFallback>
@@ -198,9 +211,13 @@ export function Navbar() {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex items-center gap-3 py-2">
                       <Avatar className="h-10 w-10">
-                        {profile?.avatar_url ? (
-                          <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
-                        ) : null}
+                        <AvatarImage 
+                          src={getAvatarUrl(
+                            profile?.avatar_url,
+                            generateAvatarSeed(profile?.full_name, profile?.email, user?.id)
+                          ) || undefined} 
+                          alt={profile?.full_name || 'User'} 
+                        />
                         <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                           {profile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
                         </AvatarFallback>

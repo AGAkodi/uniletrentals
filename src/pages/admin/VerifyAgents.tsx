@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ChevronLeft, Shield, CheckCircle, XCircle, Clock,
-  User, Building2, MapPin, FileText, Eye, Loader2, Download, FileArchive, AlertTriangle
+  User, Building2, MapPin, FileText, Eye, Loader2, Download, FileArchive, AlertTriangle, Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,6 +45,7 @@ export default function VerifyAgents() {
   const [processing, setProcessing] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [testingEmail, setTestingEmail] = useState(false);
 
   const { data: pendingAgents, isLoading } = useSWR<AgentVerification[]>(
     'all-pending-agents',
@@ -113,17 +114,20 @@ export default function VerifyAgents() {
 
       if (error) throw error;
 
-      // Send email notification via edge function
+      // Send email notification (admin-only)
       try {
-        await sendEmail({
-          to: agent.user?.email,
-          name: agent.user?.full_name,
+        const emailResult = await sendEmail({
+          to: agent.user?.email || '',
+          name: agent.user?.full_name || '',
           type: 'verification',
           status: 'approved',
           agentId: agentIdData
         });
-      } catch (emailError) {
-        console.log('Email notification failed, but verification was successful');
+        if (!emailResult.success) {
+          console.warn('Email notification failed:', emailResult.error);
+        }
+      } catch (emailError: any) {
+        console.warn('Email notification failed, but verification was successful:', emailError.message);
       }
 
       toast({ title: 'Agent approved!', description: `Agent ID: ${agentIdData}` });
@@ -165,15 +169,18 @@ export default function VerifyAgents() {
 
       if (error) throw error;
 
-      // Send email notification via edge function
+      // Send rejection email (admin-only)
       try {
-        await sendEmail({
-          to: agent.user?.email,
-          name: agent.user?.full_name,
+        const emailResult = await sendEmail({
+          to: agent.user?.email || '',
+          name: agent.user?.full_name || '',
           type: 'verification',
           status: 'rejected',
           rejectionReason: rejectionReason
         });
+        if (!emailResult.success) {
+          console.warn('Email notification failed:', emailResult.error);
+        }
       } catch (emailError) {
         console.log('Email notification failed, but rejection was recorded');
       }
@@ -203,14 +210,72 @@ export default function VerifyAgents() {
           </Link>
         </Button>
 
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
-            <Shield className="h-6 w-6 text-primary-foreground" />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
+              <Shield className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">Agent Verifications</h1>
+              <p className="text-muted-foreground">Review and approve agent verification requests</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold">Agent Verifications</h1>
-            <p className="text-muted-foreground">Review and approve agent verification requests</p>
-          </div>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              if (!profile?.email) {
+                toast({
+                  title: 'Error',
+                  description: 'No email address found',
+                  variant: 'destructive'
+                });
+                return;
+              }
+              setTestingEmail(true);
+              try {
+                const result = await sendEmail({
+                  to: profile.email,
+                  name: profile.full_name || 'Admin',
+                  type: 'verification',
+                  status: 'approved',
+                  agentId: 'TEST-AGENT-123'
+                });
+                if (result.success) {
+                  toast({
+                    title: 'Test email sent!',
+                    description: `Verification approval email sent to ${profile.email}`
+                  });
+                } else {
+                  toast({
+                    title: 'Failed',
+                    description: result.error || 'Unknown error',
+                    variant: 'destructive'
+                  });
+                }
+              } catch (error: any) {
+                toast({
+                  title: 'Error',
+                  description: error.message || 'Failed to send test email',
+                  variant: 'destructive'
+                });
+              } finally {
+                setTestingEmail(false);
+              }
+            }}
+            disabled={testingEmail || !profile?.email}
+          >
+            {testingEmail ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Mail className="h-4 w-4 mr-2" />
+                Test Verification Email
+              </>
+            )}
+          </Button>
         </div>
 
         {isLoading ? (

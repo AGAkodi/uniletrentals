@@ -119,6 +119,9 @@ export default function StudentProfile() {
                   fallbackText={profile?.full_name?.charAt(0) || 'S'}
                   onAvatarChange={handleAvatarChange}
                   previewUrl={avatarPreview}
+                  name={profile?.full_name}
+                  email={profile?.email}
+                  userId={profile?.id}
                 />
                 <div>
                   <h2 className="text-xl font-semibold font-display">{profile?.full_name}</h2>

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { Mail, Lock, Eye, EyeOff, User, Phone, GraduationCap } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Phone, GraduationCap, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
 import logo from '@/assets/logo.svg';
@@ -13,12 +15,22 @@ const signupSchema = z.object({
   fullName: z.string().min(2, 'Full name is required').max(100),
   email: z.string().email('Please enter a valid email'),
   phone: z.string().min(10, 'Please enter a valid phone number').max(15),
-  studentId: z.string().min(3, 'Student ID is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
+  gender: z.enum(['male', 'female', 'other'], {
+    required_error: 'Please select your gender',
+  }),
+  isStudent: z.boolean(),
+  studentId: z.string().optional(),
+}).refine((data) => {
+  if (data.isStudent) {
+    return data.studentId && data.studentId.length >= 3;
+  }
+  return true;
+}, {
+  message: "Student ID is required for students",
+  path: ['studentId'],
+}).refine((data) => {
+  // Password validation will be handled separately
+  return true;
 });
 
 export default function Signup() {
@@ -30,6 +42,8 @@ export default function Signup() {
     fullName: '',
     email: '',
     phone: '',
+    gender: '' as 'male' | 'female' | 'other' | '',
+    isStudent: true, // Default to student
     studentId: '',
     password: '',
     confirmPassword: '',
@@ -47,6 +61,17 @@ export default function Signup() {
     e.preventDefault();
     setErrors({});
     
+    // Validate password separately
+    if (formData.password.length < 6) {
+      setErrors({ password: 'Password must be at least 6 characters' });
+      return;
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      setErrors({ confirmPassword: "Passwords don't match" });
+      return;
+    }
+    
     const result = signupSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -61,8 +86,9 @@ export default function Signup() {
     const { error } = await signUp(formData.email, formData.password, {
       full_name: formData.fullName,
       phone: formData.phone,
-      student_id: formData.studentId,
-      role: 'student',
+      gender: formData.gender,
+      student_id: formData.isStudent ? formData.studentId : undefined,
+      role: formData.isStudent ? 'student' : 'student', // Always student for now, but can be extended
     });
     setLoading(false);
 
@@ -117,7 +143,7 @@ export default function Signup() {
             <Link to="/" className="inline-block mb-6">
               <img src={logo} alt="UNILET" className="h-12 mx-auto" />
             </Link>
-            <h1 className="text-3xl font-bold mb-2 font-display">Create Student Account</h1>
+            <h1 className="text-3xl font-bold mb-2 font-display">Create Account</h1>
             <p className="text-muted-foreground leading-relaxed">Start finding your perfect accommodation</p>
           </div>
 
@@ -212,20 +238,56 @@ export default function Signup() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="studentId">Student ID</Label>
-              <div className="relative">
-                <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="studentId"
-                  name="studentId"
-                  placeholder="STU/2024/00001"
-                  value={formData.studentId}
-                  onChange={handleChange}
-                  className="pl-10"
-                />
-              </div>
-              {errors.studentId && <p className="text-sm text-destructive">{errors.studentId}</p>}
+              <Label htmlFor="gender">Gender</Label>
+              <Select
+                value={formData.gender}
+                onValueChange={(value) => setFormData({ ...formData, gender: value as 'male' | 'female' | 'other' })}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select your gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.gender && <p className="text-sm text-destructive">{errors.gender}</p>}
             </div>
+
+            {/* Are you a student? Toggle */}
+            <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <GraduationCap className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-medium">Are you a Student?</p>
+                  <p className="text-sm text-muted-foreground">Tick if you're a student looking for accommodation</p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.isStudent}
+                onCheckedChange={(checked) => setFormData({ ...formData, isStudent: checked, studentId: checked ? formData.studentId : '' })}
+              />
+            </div>
+
+            {/* Student ID Field - Only shown if isStudent is true */}
+            {formData.isStudent && (
+              <div className="space-y-2">
+                <Label htmlFor="studentId">Student ID</Label>
+                <div className="relative">
+                  <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="studentId"
+                    name="studentId"
+                    placeholder="STU/2024/00001"
+                    value={formData.studentId}
+                    onChange={handleChange}
+                    className="pl-10"
+                  />
+                </div>
+                {errors.studentId && <p className="text-sm text-destructive">{errors.studentId}</p>}
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { getEmailRedirectUrl } from '@/lib/redirect';
 
 const adminSchema = z.object({
   fullName: z.string().min(2, 'Full name is required').max(100),
@@ -79,7 +80,7 @@ export default function SetupAdmin() {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/admin`,
+          emailRedirectTo: getEmailRedirectUrl('/admin'),
           data: {
             full_name: formData.fullName,
             role: 'admin',

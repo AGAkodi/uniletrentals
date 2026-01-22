@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AgentProfilePopup } from '@/components/property/AgentProfilePopup';
 import { BookingDialog } from '@/components/property/BookingDialog';
 import { ReportPropertyDialog } from '@/components/property/ReportPropertyDialog';
+import { getAvatarUrl, generateAvatarSeed } from '@/lib/avatar';
 
 export default function PropertyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -328,7 +329,12 @@ export default function PropertyDetail() {
                   <AgentProfilePopup agent={property.agent} propertyId={property.id}>
                     <div className="flex items-center gap-4 cursor-pointer hover:bg-secondary/50 rounded-lg p-2 -m-2 transition-colors">
                       <Avatar className="h-14 w-14">
-                        <AvatarImage src={property.agent.avatar_url || ''} />
+                        <AvatarImage 
+                          src={getAvatarUrl(
+                            property.agent.avatar_url,
+                            generateAvatarSeed(property.agent.full_name, property.agent.email, property.agent.id)
+                          ) || ''} 
+                        />
                         <AvatarFallback className="bg-primary text-primary-foreground text-lg">
                           {property.agent.full_name?.charAt(0) || 'A'}
                         </AvatarFallback>

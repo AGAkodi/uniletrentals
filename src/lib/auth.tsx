@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile, UserRole } from '@/types/database';
 import { sendEmail } from './email';
+import { getAuthRedirectUrl, getOAuthCallbackUrl, getEmailRedirectUrl } from './redirect';
 
 // Helper function to get dashboard route based on role
 export function getDashboardRoute(role: UserRole | undefined): string {
@@ -90,7 +91,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, metadata: Record<string, unknown>) => {
-    const redirectUrl = `${window.location.origin}/`;
+    // Automatically uses correct URL for localhost or production
+    const redirectUrl = getEmailRedirectUrl('/');
+    
+    // Debug logging in development
+    if (import.meta.env.DEV) {
+      console.log('[Auth] Email redirect URL:', redirectUrl);
+    }
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -101,18 +108,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     });
 
-    if (!error && data?.user) {
-      try {
-        await sendEmail({
-          to: email,
-          name: metadata?.full_name as string || 'User',
-          type: 'welcome',
-          role: metadata?.role as string || 'student',
-        });
-      } catch (e) {
-        console.error('Failed to send welcome email:', e);
-      }
-    }
+    // Note: Welcome emails are sent via Supabase Auth email templates
+    // Admin-only email sending is handled separately in admin dashboard
 
     return { error: error as Error | null };
   };
@@ -152,7 +149,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const redirectUrl = `${window.location.origin}/`;
+    // Automatically uses correct URL for localhost or production
+    const redirectUrl = getOAuthCallbackUrl();
+    
+    // Debug logging in development
+    if (import.meta.env.DEV) {
+      console.log('[Auth] OAuth redirect URL:', redirectUrl);
+    }
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

@@ -126,6 +126,9 @@ export default function AgentProfile() {
                   fallbackText={profile?.full_name?.charAt(0) || 'A'}
                   onAvatarChange={handleAvatarChange}
                   previewUrl={avatarPreview}
+                  name={profile?.full_name}
+                  email={profile?.email}
+                  userId={profile?.id}
                 />
                 <div>
                   <h2 className="text-xl font-semibold">{profile?.full_name}</h2>

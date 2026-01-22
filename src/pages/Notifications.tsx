@@ -167,10 +167,10 @@ export default function Notifications() {
             ) : (
               <div className="divide-y">
                 {notifications.map((notification) => (
-                  <button
+                  <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`w-full text-left px-6 py-4 hover:bg-secondary/50 transition-colors group ${
+                    className={`w-full text-left px-6 py-4 hover:bg-secondary/50 transition-colors group cursor-pointer ${
                       !notification.is_read ? 'bg-secondary/30' : ''
                     }`}
                   >
@@ -201,7 +201,7 @@ export default function Notifications() {
                         <span className="h-2.5 w-2.5 rounded-full bg-primary flex-shrink-0 mt-2" />
                       )}
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}

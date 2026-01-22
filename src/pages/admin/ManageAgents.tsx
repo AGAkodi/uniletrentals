@@ -150,8 +150,9 @@ function ManageAgentsContent() {
         link: '/agent/profile',
       });
 
+      // Send suspension email (admin-only)
       try {
-        await sendEmail({
+        const emailResult = await sendEmail({
           to: selectedAgent.user.email,
           name: selectedAgent.user.full_name,
           type: 'suspension',
@@ -159,8 +160,11 @@ function ManageAgentsContent() {
           reason: suspensionReason,
           endDate: suspendedUntil.toISOString()
         });
-      } catch (e) {
-        console.error('Failed to send suspension email:', e);
+        if (!emailResult.success) {
+          console.warn('Email notification failed:', emailResult.error);
+        }
+      } catch (e: any) {
+        console.warn('Failed to send suspension email:', e.message);
       }
 
       toast.success(`Agent ${selectedAgent.user?.full_name} has been suspended`);
@@ -205,12 +209,16 @@ function ManageAgentsContent() {
       });
 
       try {
-        await sendEmail({
+        // Send suspension lifted email (admin-only)
+        const emailResult = await sendEmail({
           to: selectedAgent.user.email,
           name: selectedAgent.user.full_name,
           type: 'suspension',
           status: 'lifted'
         });
+        if (!emailResult.success) {
+          console.warn('Email notification failed:', emailResult.error);
+        }
       } catch (e) {
         console.error('Failed to send suspension lifted email:', e);
       }

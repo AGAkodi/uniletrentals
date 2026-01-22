@@ -73,12 +73,16 @@ export default function ApproveListings() {
 
       if (property.agent?.email) {
         try {
-          await sendEmail({
+          // Send approval email (admin-only)
+          const emailResult = await sendEmail({
             to: property.agent.email,
             name: property.agent.full_name,
             type: 'listing_approved',
             listingTitle: property.title
           });
+          if (!emailResult.success) {
+            console.warn('Email notification failed:', emailResult.error);
+          }
         } catch (e) {
           console.error("Failed to send approval email", e);
         }

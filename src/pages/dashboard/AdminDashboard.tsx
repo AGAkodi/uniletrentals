@@ -1,18 +1,23 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { 
   Users, Building2, Shield, FileCheck, 
-  Flag, FileText, CheckCircle, Clock, TrendingUp, User, LayoutDashboard
+  Flag, FileText, CheckCircle, Clock, TrendingUp, User, LayoutDashboard, Mail, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth';
 import { Navbar } from '@/components/layout/Navbar';
+import { useToast } from '@/hooks/use-toast';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { sendEmail } from '@/lib/email';
 
 function AdminDashboardContent() {
   const { profile } = useAuth();
+  const { toast } = useToast();
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
 
   const { data: stats } = useSWR('admin-stats', async () => {
     const [profiles, properties, bookings, pendingAgents, pendingListings, reports] = await Promise.all([
@@ -60,6 +65,48 @@ function AdminDashboardContent() {
       .limit(5);
     return data;
   });
+
+  const handleTestEmail = async () => {
+    if (!profile?.email) {
+      toast({
+        title: 'Error',
+        description: 'No email address found for your account',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setSendingTestEmail(true);
+    try {
+      const result = await sendEmail({
+        to: profile.email,
+        name: profile.full_name || 'Admin',
+        type: 'welcome',
+        role: 'admin'
+      });
+
+      if (result.success) {
+        toast({
+          title: 'Test email sent!',
+          description: `Check your inbox at ${profile.email}`,
+        });
+      } else {
+        toast({
+          title: 'Failed to send email',
+          description: result.error || 'Unknown error',
+          variant: 'destructive'
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to send test email',
+        variant: 'destructive'
+      });
+    } finally {
+      setSendingTestEmail(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-secondary/30">
@@ -135,6 +182,45 @@ function AdminDashboardContent() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Test Email Section */}
+          <Card className="mb-8 border-primary/20 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 font-display">
+                <Mail className="icon-md" />
+                Test Email Service
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Send a test email to verify Resend is configured correctly
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Email will be sent to: <span className="font-medium">{profile?.email}</span>
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleTestEmail} 
+                  disabled={sendingTestEmail || !profile?.email}
+                  variant="default"
+                >
+                  {sendingTestEmail ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="h-4 w-4 mr-2" />
+                      Send Test Email
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

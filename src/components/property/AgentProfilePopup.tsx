@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
+import { getAvatarUrl, generateAvatarSeed } from '@/lib/avatar';
 
 interface AgentProfilePopupProps {
   agent: {
@@ -133,7 +134,12 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
           {/* Agent Info */}
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={agent.avatar_url || ''} />
+              <AvatarImage 
+                src={getAvatarUrl(
+                  agent.avatar_url,
+                  generateAvatarSeed(agent.full_name, agent.email, agent.id)
+                ) || ''} 
+              />
               <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                 {agent.full_name?.charAt(0) || 'A'}
               </AvatarFallback>

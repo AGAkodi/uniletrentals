@@ -1,7 +1,47 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { getAppUrl } from "./redirect";
 
-const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY;
+/**
+ * Check if the current user is an admin
+ * This ensures only admins can send emails
+ */
+async function checkAdminAccess(): Promise<boolean> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return false;
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        return profile?.role === 'admin';
+    } catch (error) {
+        console.error('Error checking admin access:', error);
+        return false;
+    }
+}
+
+// Helper to get base URL for email links
+// Uses production URL for emails (since they're sent from client but should link to production)
+function getBaseUrl(): string {
+    // For emails, prioritize production URL to ensure links work for all users
+    // Check if we have an explicit production URL set
+    if (import.meta.env.VITE_PRODUCTION_URL) {
+        return import.meta.env.VITE_PRODUCTION_URL;
+    }
+    
+    // Fallback: try to get current app URL, but prefer production
+    const currentUrl = getAppUrl();
+    if (currentUrl && !currentUrl.includes('localhost') && !currentUrl.includes('127.0.0.1')) {
+        return currentUrl;
+    }
+    
+    // Default to production domain
+    return 'https://uniletrentals.com';
+}
 
 export type EmailType = 'welcome' | 'verification' | 'suspension' | 'report' | 'listing_approved';
 
@@ -20,9 +60,11 @@ export interface EmailPayload {
 }
 
 export const sendEmail = async (payload: EmailPayload) => {
-    if (!RESEND_API_KEY) {
-        console.error("VITE_RESEND_API_KEY is missing");
-        return { success: false, error: "Missing API Key" };
+    // SECURITY: Only admins can send emails
+    const isAdmin = await checkAdminAccess();
+    if (!isAdmin) {
+        console.error("Unauthorized: Only admins can send emails");
+        return { success: false, error: "Unauthorized: Admin access required" };
     }
 
     let subject = "";
@@ -59,49 +101,105 @@ export const sendEmail = async (payload: EmailPayload) => {
             subject = "🏠 Listing Approved - UNILET";
             htmlContent = getListingApprovedTemplate(payload.name, payload.listingTitle);
             break;
+        default:
+            console.warn(`Unknown email type: ${payload.type}`);
+            return { success: false, error: "Unknown email type" };
     }
 
-    try {
-        // 1. Log attempt
-        const { data: logEntry } = await supabase
-            .from('email_logs')
-            .insert({
-                recipient: payload.to,
-                subject: subject,
-                template_type: payload.type,
-                status: 'sending',
-                metadata: payload
-            })
-            .select()
-            .single();
+    if (!subject || !htmlContent) {
+        console.warn("Email subject or content is empty");
+        return { success: false, error: "Email content not generated" };
+    }
 
-        // 2. Send via Resend REST API
-        const response = await fetch('https://api.resend.com/emails', {
+    let logEntryId: string | null = null;
+
+    try {
+        // 1. Log attempt (optional - don't fail if table doesn't exist)
+        try {
+            const { data: logEntry, error: logError } = await supabase
+                .from('email_logs')
+                .insert({
+                    recipient: payload.to,
+                    subject: subject,
+                    template_type: payload.type,
+                    status: 'sending',
+                    metadata: payload
+                })
+                .select()
+                .single();
+
+            if (!logError && logEntry) {
+                logEntryId = logEntry.id;
+            }
+        } catch (logErr) {
+            // Email logs table might not exist - that's okay, continue
+            console.warn("Could not log email attempt:", logErr);
+        }
+
+        // 2. Send via Supabase Edge Function (server-side to avoid CORS)
+        const fromEmail = import.meta.env.VITE_RESEND_FROM_EMAIL || "UNILET <onboarding@resend.dev>";
+        const functionName = import.meta.env.VITE_EDGE_FUNCTION_NAME || 'super-function';
+        
+        console.log('Sending email via Supabase Edge Function...', { to: payload.to, subject, functionName });
+
+        // Get current user ID (already verified as admin in checkAdminAccess)
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            throw new Error('Not authenticated');
+        }
+
+        // Call Edge Function with API key (bypasses Supabase JWT validation)
+        const apiKey = import.meta.env.VITE_EMAIL_API_KEY;
+        
+        if (!apiKey) {
+            throw new Error('VITE_EMAIL_API_KEY not set in environment variables');
+        }
+        
+        console.log('Using API key:', apiKey ? '***' + apiKey.slice(-4) : 'NOT SET');
+        
+        // Use fetch directly to avoid Supabase's JWT validation
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const functionUrl = `${supabaseUrl}/functions/v1/${functionName}`;
+        
+        const response = await fetch(functionUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${RESEND_API_KEY}`
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
             body: JSON.stringify({
-                from: "UNILET Support <support@uniletrentals.com>",
-                to: [payload.to],
+                from: fromEmail,
+                to: payload.to,
                 subject: subject,
-                html: htmlContent
+                html: htmlContent,
+                userId: user.id,
+                apiKey: apiKey
             })
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-            throw new Error(data.message || 'Failed to send email');
+            const errorData = await response.json().catch(() => ({ error: response.statusText }));
+            throw new Error(errorData.error || `HTTP ${response.status}`);
         }
 
-        // 3. Update log success
-        if (logEntry) {
-            await supabase
-                .from('email_logs')
-                .update({ status: 'sent' })
-                .eq('id', logEntry.id);
+        const data = await response.json();
+
+        if (!data || !data.id) {
+            throw new Error('Failed to send email - no response from email service');
+        }
+
+        console.log('Email sent successfully:', data.id);
+
+        // 3. Update log success (optional)
+        if (logEntryId) {
+            try {
+                await supabase
+                    .from('email_logs')
+                    .update({ status: 'sent' })
+                    .eq('id', logEntryId);
+            } catch (updateErr) {
+                console.warn("Could not update email log:", updateErr);
+            }
         }
 
         return { success: true, data };
@@ -109,12 +207,22 @@ export const sendEmail = async (payload: EmailPayload) => {
     } catch (error: any) {
         console.error("Error sending email:", error);
 
-        // Update log error
-        // Note: In a real app we'd keep the log ID in state to update it, 
-        // but here we just log to console if initial insert failed or let it stay as 'sending' if update failed.
-        // Ideally we would query the logEntry again if we had it.
+        // Update log error (optional)
+        if (logEntryId) {
+            try {
+                await supabase
+                    .from('email_logs')
+                    .update({ 
+                        status: 'failed',
+                        error_message: error.message 
+                    })
+                    .eq('id', logEntryId);
+            } catch (updateErr) {
+                console.warn("Could not update email log with error:", updateErr);
+            }
+        }
 
-        return { success: false, error: error.message };
+        return { success: false, error: error.message || "Failed to send email" };
     }
 };
 
@@ -150,6 +258,7 @@ function getWelcomeTemplate(name: string, role?: string) {
     const isAgent = role === 'agent';
     const color = '#3b82f6';
     const title = "Welcome to UNILET!";
+    const baseUrl = getBaseUrl();
 
     const content = `
    <p style="font-size: 18px; margin-top: 0;">Hello <strong>${name}</strong>,</p>
@@ -163,7 +272,7 @@ function getWelcomeTemplate(name: string, role?: string) {
      <li style="margin-bottom: 10px;">📈 Track your business growth</li>
    </ul>
    <div style="text-align: center; margin-top: 30px;">
-     <a href="https://unilet.lovable.app/agent/dashboard" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Go to Dashboard</a>
+     <a href="${baseUrl}/agent/dashboard" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Go to Dashboard</a>
    </div>
    ` : `
    <p>You can now:</p>
@@ -173,7 +282,7 @@ function getWelcomeTemplate(name: string, role?: string) {
      <li style="margin-bottom: 10px;">💬 Contact agents directly</li>
    </ul>
    <div style="text-align: center; margin-top: 30px;">
-     <a href="https://unilet.lovable.app/student/dashboard" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Start Exploring</a>
+     <a href="${baseUrl}/student/dashboard" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Start Exploring</a>
    </div>
    `}
  `;
@@ -183,6 +292,7 @@ function getWelcomeTemplate(name: string, role?: string) {
 function getVerificationApprovedTemplate(name: string, agentId?: string) {
     const color = '#10b981';
     const title = "Verification Approved!";
+    const baseUrl = getBaseUrl();
     const content = `
    <p style="font-size: 18px; margin-top: 0;">Hello <strong>${name}</strong>,</p>
    <p>Great news! Your agent verification has been approved. You are now a verified agent on UNILET.</p>
@@ -193,7 +303,7 @@ function getVerificationApprovedTemplate(name: string, agentId?: string) {
    </div>
    
    <div style="text-align: center; margin-top: 30px;">
-     <a href="https://unilet.lovable.app/agent" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Go to Dashboard</a>
+     <a href="${baseUrl}/agent" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Go to Dashboard</a>
    </div>
  `;
     return getBaseHtml(content, title, color);
@@ -202,6 +312,7 @@ function getVerificationApprovedTemplate(name: string, agentId?: string) {
 function getVerificationRejectedTemplate(name: string, reason?: string) {
     const color = '#ef4444';
     const title = "Verification Update";
+    const baseUrl = getBaseUrl();
     const content = `
    <p style="font-size: 18px; margin-top: 0;">Hello <strong>${name}</strong>,</p>
    <p>Unfortunately, your agent verification could not be approved at this time.</p>
@@ -212,7 +323,7 @@ function getVerificationRejectedTemplate(name: string, reason?: string) {
    </div>
    
    <div style="text-align: center; margin-top: 30px;">
-     <a href="https://unilet.lovable.app/agent/verification" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Resubmit Documents</a>
+     <a href="${baseUrl}/agent/verification" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Resubmit Documents</a>
    </div>
  `;
     return getBaseHtml(content, title, color);
@@ -239,13 +350,14 @@ function getSuspensionTemplate(name: string, reason?: string, endDate?: string) 
 function getSuspensionLiftedTemplate(name: string) {
     const color = '#10b981';
     const title = "Suspension Lifted";
+    const baseUrl = getBaseUrl();
     const content = `
    <p style="font-size: 18px; margin-top: 0;">Hello <strong>${name}</strong>,</p>
    <p>Good news! Your account suspension has been lifted.</p>
    <p>You now have full access to your agent dashboard and listings.</p>
    
    <div style="text-align: center; margin-top: 30px;">
-     <a href="https://unilet.lovable.app/agent" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Go to Dashboard</a>
+     <a href="${baseUrl}/agent" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Go to Dashboard</a>
    </div>
  `;
     return getBaseHtml(content, title, color);
@@ -271,6 +383,7 @@ function getReportResolvedTemplate(name: string, resolution?: string) {
 function getListingApprovedTemplate(name: string, listingTitle?: string) {
     const color = '#10b981';
     const title = "Listing Approved! 🏠";
+    const baseUrl = getBaseUrl();
     const content = `
      <p style="font-size: 18px; margin-top: 0;">Hello <strong>${name}</strong>,</p>
      <p>Congratulations! Your listing <strong>${listingTitle || 'Properties'}</strong> has been approved and is now live on UNILET.</p>
@@ -278,7 +391,7 @@ function getListingApprovedTemplate(name: string, listingTitle?: string) {
      <p>Students can now view your property and contact you for bookings.</p>
      
      <div style="text-align: center; margin-top: 30px;">
-       <a href="https://unilet.lovable.app/agent/listings" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Manage Listings</a>
+       <a href="${baseUrl}/agent/listings" style="background: ${color}; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Manage Listings</a>
      </div>
    `;
     return getBaseHtml(content, title, color);

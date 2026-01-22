@@ -87,12 +87,16 @@ export default function AdminReports() {
       });
 
       try {
-        await sendEmail({
+        // Send email notification (admin-only)
+        const emailResult = await sendEmail({
           to: report.reporter.email,
           name: report.reporter.full_name,
           type: 'report',
           resolution: resolution
         });
+        if (!emailResult.success) {
+          console.warn('Email notification failed:', emailResult.error);
+        }
       } catch (e) {
         console.error('Failed to send report resolution email:', e);
       }

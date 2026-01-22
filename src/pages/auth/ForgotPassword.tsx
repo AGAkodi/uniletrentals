@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { getPasswordResetRedirectUrl } from '@/lib/redirect';
 
 const emailSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -31,7 +32,7 @@ export default function ForgotPassword() {
 
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      redirectTo: getPasswordResetRedirectUrl(),
     });
     setLoading(false);
 

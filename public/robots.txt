@@ -1,3 +1,6 @@
+# robots.txt for UNILET - Student Accommodation Platform
+
+# Allow major search engines
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +13,15 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+# Allow all other bots
 User-agent: *
 Allow: /
+
+# Disallow private/auth pages (optional - helps with crawl budget)
+Disallow: /auth/
+Disallow: /admin/
+Disallow: /agent/
+Disallow: /student/
+
+# Sitemap location
+Sitemap: https://uniletrentals.com/sitemap.xml

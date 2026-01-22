@@ -9,6 +9,71 @@ const Index = () => {
     <Layout>
       {/* Hero Section */}
       <section className="relative min-h-[600px] flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-hidden">
+        {/* Animated House Silhouette Background */}
+        <div className="absolute inset-0 pointer-events-none house-silhouette-bg">
+          <svg
+            className="absolute inset-0 w-full h-full"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 200 200"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <pattern
+                id="housePattern"
+                x="0"
+                y="0"
+                width="200"
+                height="200"
+                patternUnits="userSpaceOnUse"
+              >
+                {/* House Silhouette */}
+                <g>
+                  {/* Main structure */}
+                  <path
+                    d="M100 40 L40 80 L40 160 L160 160 L160 80 Z"
+                    fill="currentColor"
+                    className="text-foreground"
+                  />
+                  {/* Roof */}
+                  <path
+                    d="M40 80 L100 40 L160 80"
+                    fill="currentColor"
+                    className="text-foreground"
+                    strokeWidth="0"
+                  />
+                  {/* Door */}
+                  <rect
+                    x="85"
+                    y="120"
+                    width="30"
+                    height="40"
+                    fill="currentColor"
+                    className="text-foreground"
+                  />
+                  {/* Windows */}
+                  <rect
+                    x="55"
+                    y="100"
+                    width="20"
+                    height="20"
+                    fill="currentColor"
+                    className="text-foreground"
+                  />
+                  <rect
+                    x="125"
+                    y="100"
+                    width="20"
+                    height="20"
+                    fill="currentColor"
+                    className="text-foreground"
+                  />
+                </g>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#housePattern)" />
+          </svg>
+        </div>
+
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />

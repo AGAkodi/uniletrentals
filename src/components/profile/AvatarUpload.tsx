@@ -4,12 +4,16 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
+import { getAvatarUrl, generateAvatarSeed } from '@/lib/avatar';
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string | null;
   fallbackText: string;
   onAvatarChange: (file: File) => void;
   previewUrl?: string | null;
+  name?: string | null;
+  email?: string | null;
+  userId?: string | null;
 }
 
 const AVATAR_SIZE = 256; // Final avatar size in pixels
@@ -18,7 +22,10 @@ export function AvatarUpload({
   currentAvatarUrl, 
   fallbackText, 
   onAvatarChange,
-  previewUrl 
+  previewUrl,
+  name,
+  email,
+  userId
 }: AvatarUploadProps) {
   const [showCropDialog, setShowCropDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -132,7 +139,10 @@ export function AvatarUpload({
     setPosition({ x: 0, y: 0 });
   };
 
-  const displayUrl = previewUrl || currentAvatarUrl;
+  const displayUrl = previewUrl || getAvatarUrl(
+    currentAvatarUrl,
+    generateAvatarSeed(name, email, userId)
+  );
 
   return (
     <>

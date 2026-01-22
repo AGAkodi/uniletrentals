@@ -2,6 +2,7 @@ import { Profile } from '@/types/database';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Phone, CheckCircle } from 'lucide-react';
+import { getAvatarUrl, generateAvatarSeed } from '@/lib/avatar';
 import {
   HoverCard,
   HoverCardContent,
@@ -29,7 +30,13 @@ export function StudentProfilePopup({ student, children }: StudentProfilePopupPr
       <HoverCardContent className="w-80" align="start">
         <div className="flex items-start gap-4">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={student.avatar_url || ''} alt={student.full_name} />
+            <AvatarImage 
+              src={getAvatarUrl(
+                student.avatar_url,
+                generateAvatarSeed(student.full_name, student.email, student.id)
+              ) || ''} 
+              alt={student.full_name} 
+            />
             <AvatarFallback className="bg-primary/10 text-primary text-lg">
               {getInitials(student.full_name)}
             </AvatarFallback>

@@ -394,6 +394,26 @@
   }
 }
 
+@keyframes housePattern {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.02;
+  }
+  50% {
+    transform: translate(30px, 30px);
+    opacity: 0.04;
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.02;
+  }
+}
+
+.house-silhouette-bg {
+  animation: housePattern 25s ease-in-out infinite;
+  opacity: 0.03;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

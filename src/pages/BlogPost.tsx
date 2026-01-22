@@ -3,6 +3,7 @@ import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getAvatarUrl, generateAvatarSeed } from '@/lib/avatar';
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 import { Blog } from '@/types/database';
@@ -84,7 +85,12 @@ export default function BlogPost() {
           {blog.author && (
             <div className="flex items-center gap-3">
               <Avatar>
-                <AvatarImage src={blog.author.avatar_url || ''} />
+                <AvatarImage 
+                  src={getAvatarUrl(
+                    blog.author.avatar_url,
+                    generateAvatarSeed(blog.author.full_name, blog.author.email, blog.author.id)
+                  ) || ''} 
+                />
                 <AvatarFallback>{blog.author.full_name?.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
