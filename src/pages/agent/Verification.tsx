@@ -97,6 +97,10 @@ export default function AgentVerification() {
   };
 
   const createZipAndUpload = async (): Promise<string> => {
+    if (!profile?.id) {
+      throw new Error('User profile not found');
+    }
+
     const zip = new JSZip();
     
     // Add all files to ZIP
@@ -113,7 +117,19 @@ export default function AgentVerification() {
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     
     // Upload to Supabase storage
-    const fileName = `${profile?.id}/verification-${Date.now()}.zip`;
+    const fileName = `${profile.id}/verification-${Date.now()}.zip`;
+    
+    // Check if bucket exists, if not show helpful error
+    const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+    if (bucketError) {
+      console.error('Error checking buckets:', bucketError);
+      throw new Error('Failed to access storage. Please contact support.');
+    }
+    
+    const agentDocsBucket = buckets?.find(b => b.id === 'agent-docs');
+    if (!agentDocsBucket) {
+      throw new Error('Storage bucket not configured. Please contact support.');
+    }
     
     const { error: uploadError } = await supabase.storage
       .from('agent-docs')
@@ -122,7 +138,17 @@ export default function AgentVerification() {
         contentType: 'application/zip'
       });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      // Provide more helpful error messages
+      if (uploadError.message?.includes('permission') || uploadError.message?.includes('policy')) {
+        throw new Error('Permission denied. Please ensure you are logged in as an agent.');
+      }
+      if (uploadError.message?.includes('bucket')) {
+        throw new Error('Storage bucket not found. Please contact support.');
+      }
+      throw new Error(`Upload failed: ${uploadError.message || 'Unknown error'}`);
+    }
 
     // Return the file path for storage (bucket is private, we'll use signed URLs for download)
     return fileName;

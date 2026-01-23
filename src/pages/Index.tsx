@@ -9,72 +9,30 @@ const Index = () => {
     <Layout>
       {/* Hero Section */}
       <section className="relative min-h-[600px] flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-hidden">
-        {/* Animated House Silhouette Background */}
-        <div className="absolute inset-0 pointer-events-none house-silhouette-bg">
-          <svg
-            className="absolute inset-0 w-full h-full"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 200 200"
-            preserveAspectRatio="none"
+        {/* Background Video */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.15] overflow-hidden">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              minWidth: '100%',
+              minHeight: '100%',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+            }}
           >
-            <defs>
-              <pattern
-                id="housePattern"
-                x="0"
-                y="0"
-                width="200"
-                height="200"
-                patternUnits="userSpaceOnUse"
-              >
-                {/* House Silhouette */}
-                <g>
-                  {/* Main structure */}
-                  <path
-                    d="M100 40 L40 80 L40 160 L160 160 L160 80 Z"
-                    fill="currentColor"
-                    className="text-foreground"
-                  />
-                  {/* Roof */}
-                  <path
-                    d="M40 80 L100 40 L160 80"
-                    fill="currentColor"
-                    className="text-foreground"
-                    strokeWidth="0"
-                  />
-                  {/* Door */}
-                  <rect
-                    x="85"
-                    y="120"
-                    width="30"
-                    height="40"
-                    fill="currentColor"
-                    className="text-foreground"
-                  />
-                  {/* Windows */}
-                  <rect
-                    x="55"
-                    y="100"
-                    width="20"
-                    height="20"
-                    fill="currentColor"
-                    className="text-foreground"
-                  />
-                  <rect
-                    x="125"
-                    y="100"
-                    width="20"
-                    height="20"
-                    fill="currentColor"
-                    className="text-foreground"
-                  />
-                </g>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#housePattern)" />
-          </svg>
+            <source src="/house.mp4" type="video/mp4" />
+            {/* Fallback for browsers that don't support video */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+          </video>
         </div>
 
-        {/* Background Pattern */}
+        {/* Background Pattern Overlay */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />

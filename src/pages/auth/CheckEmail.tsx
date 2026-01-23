@@ -22,7 +22,7 @@ export default function CheckEmail() {
 
                     <div className="space-y-2 text-muted-foreground">
                         <p>We've sent a verification link to your email address.</p>
-                        <p>Please check your inbox and click the link to verify your account. Once verified, you will be redirected to complete your agent verification.</p>
+                        <p>Please check your inbox and click the link to verify your account.</p>
                     </div>
                 </div>
 
@@ -30,8 +30,8 @@ export default function CheckEmail() {
                     <div className="bg-secondary/50 p-4 rounded-lg flex items-start gap-3 text-left">
                         <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
                         <div className="text-sm">
-                            <p className="font-medium">Next Step: Verification</p>
-                            <p className="text-muted-foreground">After verifying your email, you'll need to upload your identification documents to start listing properties.</p>
+                            <p className="font-medium">Email Verification Required</p>
+                            <p className="text-muted-foreground">Click the link in your email to verify your account and complete the signup process.</p>
                         </div>
                     </div>
 

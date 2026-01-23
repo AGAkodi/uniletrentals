@@ -101,8 +101,12 @@ export default function Signup() {
       return;
     }
 
-    toast({ title: 'Account created!', description: 'Welcome to UNILET.' });
-    navigate('/student/dashboard');
+    // Redirect to check email page - Supabase will send verification email automatically
+    toast({ 
+      title: 'Account created!', 
+      description: 'Please check your email to verify your account.' 
+    });
+    navigate('/auth/check-email');
   };
 
   const handleGoogleSignUp = async () => {

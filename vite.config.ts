@@ -14,4 +14,8 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Fix 404 on refresh - serve index.html for all routes (SPA fallback)
+  preview: {
+    port: 8080,
+  },
 }));
