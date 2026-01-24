@@ -103,7 +103,48 @@ export default function AgentVerification() {
 
     const zip = new JSZip();
     
-    // Add all files to ZIP
+    // Fetch verification data to get company_name and office_address
+    const { data: verificationData } = await supabase
+      .from('agent_verifications')
+      .select('company_name, office_address')
+      .eq('user_id', profile.id)
+      .maybeSingle();
+
+    // Create agent personal information file
+    const agentInfo = {
+      'Agent Personal Information': '='.repeat(50),
+      'Full Name': profile.full_name || 'Not provided',
+      'Email Address': profile.email || 'Not provided',
+      'Phone Number': profile.phone || 'Not provided',
+      'Company Name': verificationData?.company_name || 'Not provided',
+      'Office Address': verificationData?.office_address || 'Not provided',
+      'Submitted Date': new Date().toLocaleString(),
+      'Verification Status': 'Pending Review',
+      '': '',
+      'Note': 'This information was provided during agent signup and verification submission.',
+    };
+
+    // Format as readable text file
+    const agentInfoText = Object.entries(agentInfo)
+      .map(([key, value]) => key ? `${key}: ${value}` : '')
+      .join('\n');
+
+    // Add agent personal information file to ZIP
+    zip.file('AGENT_INFORMATION.txt', agentInfoText);
+
+    // Also add as JSON for easier parsing
+    const agentInfoJson = {
+      full_name: profile.full_name || null,
+      email: profile.email || null,
+      phone: profile.phone || null,
+      company_name: verificationData?.company_name || null,
+      office_address: verificationData?.office_address || null,
+      submitted_at: new Date().toISOString(),
+      verification_status: 'pending',
+    };
+    zip.file('AGENT_INFORMATION.json', JSON.stringify(agentInfoJson, null, 2));
+    
+    // Add all uploaded documents to ZIP
     for (const uploadedFile of uploadedFiles) {
       const folder = zip.folder(uploadedFile.type);
       if (folder) {
@@ -119,18 +160,7 @@ export default function AgentVerification() {
     // Upload to Supabase storage
     const fileName = `${profile.id}/verification-${Date.now()}.zip`;
     
-    // Check if bucket exists, if not show helpful error
-    const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-    if (bucketError) {
-      console.error('Error checking buckets:', bucketError);
-      throw new Error('Failed to access storage. Please contact support.');
-    }
-    
-    const agentDocsBucket = buckets?.find(b => b.id === 'agent-docs');
-    if (!agentDocsBucket) {
-      throw new Error('Storage bucket not configured. Please contact support.');
-    }
-    
+    // Try to upload directly - if bucket doesn't exist, we'll get a clear error
     const { error: uploadError } = await supabase.storage
       .from('agent-docs')
       .upload(fileName, zipBlob, { 
@@ -140,13 +170,33 @@ export default function AgentVerification() {
 
     if (uploadError) {
       console.error('Upload error:', uploadError);
+      
+      // Check if bucket doesn't exist
+      if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('does not exist')) {
+        throw new Error(
+          'Storage bucket "agent-docs" is not configured. ' +
+          'Please run the migration file: supabase/migrations/20260124_create_agent_docs_bucket.sql ' +
+          'in your Supabase SQL Editor, or contact your administrator to set up the storage bucket.'
+        );
+      }
+      
       // Provide more helpful error messages
-      if (uploadError.message?.includes('permission') || uploadError.message?.includes('policy')) {
-        throw new Error('Permission denied. Please ensure you are logged in as an agent.');
+      if (uploadError.message?.includes('permission') || uploadError.message?.includes('policy') || uploadError.message?.includes('Row Level Security')) {
+        throw new Error(
+          'Permission denied. Please ensure:\n' +
+          '1. You are logged in as an agent\n' +
+          '2. The storage bucket policies are correctly configured\n' +
+          '3. Your account has the agent role assigned'
+        );
       }
+      
       if (uploadError.message?.includes('bucket')) {
-        throw new Error('Storage bucket not found. Please contact support.');
+        throw new Error(
+          'Storage bucket error. Please ensure the "agent-docs" bucket exists. ' +
+          'Run the migration: supabase/migrations/20260124_create_agent_docs_bucket.sql'
+        );
       }
+      
       throw new Error(`Upload failed: ${uploadError.message || 'Unknown error'}`);
     }
 
@@ -177,17 +227,65 @@ export default function AgentVerification() {
       // Create ZIP and upload
       const zipFilePath = await createZipAndUpload();
 
-      // Update verification record
-      const { error } = await supabase
+      // Update verification record - explicitly set status to 'pending' and clear admin fields
+      // This ensures agents can resubmit even if they were previously approved/rejected
+      // CRITICAL: Always set status to 'pending' - only admins can approve
+      let updateResult = await supabase
         .from('agent_verifications')
         .update({
           zip_file_url: zipFilePath,
-          verification_status: 'pending',
+          verification_status: 'pending', // CRITICAL: Always 'pending', never 'approved'
           submitted_at: new Date().toISOString(),
+          // Clear admin-only fields when resubmitting
+          agent_id: null,
+          verified_by: null,
+          verified_at: null,
+          rejection_reason: null,
         })
-        .eq('user_id', profile.id);
-
-      if (error) throw error;
+        .eq('user_id', profile.id)
+        .select()
+        .single();
+      
+      // If update didn't find a record (PGRST116 = no rows returned), insert one
+      if (updateResult.error && (updateResult.error.code === 'PGRST116' || updateResult.error.message?.includes('No rows'))) {
+        console.log('No existing record found, creating new one...');
+        const insertResult = await supabase
+          .from('agent_verifications')
+          .insert({
+            user_id: profile.id,
+            zip_file_url: zipFilePath,
+            verification_status: 'pending', // CRITICAL: Always 'pending'
+            submitted_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+        
+        if (insertResult.error) {
+          console.error('Error inserting verification record:', insertResult.error);
+          throw insertResult.error;
+        }
+        
+        console.log('Verification record created:', insertResult.data);
+        console.log('Status set to:', insertResult.data?.verification_status);
+        
+        // Verify status is 'pending'
+        if (insertResult.data?.verification_status !== 'pending') {
+          console.error('ERROR: Status is not pending after insert!', insertResult.data?.verification_status);
+          throw new Error('Verification status was not set to pending. Please contact support.');
+        }
+      } else if (updateResult.error) {
+        console.error('Error updating verification record:', updateResult.error);
+        throw updateResult.error;
+      } else {
+        console.log('Verification record updated:', updateResult.data);
+        console.log('Status set to:', updateResult.data?.verification_status);
+        
+        // Verify status is 'pending'
+        if (updateResult.data?.verification_status !== 'pending') {
+          console.error('ERROR: Status is not pending after update!', updateResult.data?.verification_status);
+          throw new Error('Verification status was not set to pending. Please contact support.');
+        }
+      }
 
       // Send notification to admins
       try {
@@ -203,12 +301,17 @@ export default function AgentVerification() {
       }
 
       // Refresh the data
-      mutate(`agent-verification-${profile.id}`);
+      await mutate(`agent-verification-${profile.id}`);
+      
+      // Also trigger refresh for admin page
+      mutate('all-pending-agents');
 
       toast({ 
         title: 'Documents submitted!', 
         description: 'Your verification is pending admin review. You will be notified once reviewed.' 
       });
+      
+      console.log('ZIP file uploaded successfully:', zipFilePath);
       
       // Clear uploaded files
       setUploadedFiles([]);

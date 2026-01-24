@@ -47,17 +47,63 @@ export default function VerifyAgents() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [testingEmail, setTestingEmail] = useState(false);
 
-  const { data: pendingAgents, isLoading } = useSWR<AgentVerification[]>(
+  const { data: pendingAgents, isLoading, error: queryError } = useSWR<AgentVerification[]>(
     'all-pending-agents',
     async () => {
-      const { data, error } = await supabase
+      console.log('[VerifyAgents] Fetching pending agents...');
+      
+      // Fetch pending agents with their profile information
+      const { data: verifications, error: verificationsError } = await supabase
         .from('agent_verifications')
-        .select('*, user:profiles!agent_verifications_user_id_fkey(*)')
+        .select('*')
         .eq('verification_status', 'pending')
+        .not('zip_file_url', 'is', null)
         .order('submitted_at', { ascending: false, nullsFirst: false });
 
-      if (error) throw error;
+      if (verificationsError) {
+        console.error('[VerifyAgents] Error fetching verifications:', verificationsError);
+        throw verificationsError;
+      }
+
+      console.log('[VerifyAgents] Found verifications:', verifications?.length || 0, verifications);
+
+      // If no verifications found, return empty array
+      if (!verifications || verifications.length === 0) {
+        console.log('[VerifyAgents] No pending verifications found');
+        return [];
+      }
+
+      // Fetch profile information for each agent
+      const userIds = verifications.map(v => v.user_id);
+      console.log('[VerifyAgents] Fetching profiles for user IDs:', userIds);
+      
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, phone')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('[VerifyAgents] Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
+
+      console.log('[VerifyAgents] Found profiles:', profiles?.length || 0);
+
+      // Combine the data
+      const data = verifications.map(verification => ({
+        ...verification,
+        user: profiles?.find(p => p.id === verification.user_id) || null
+      }));
+
+      console.log('[VerifyAgents] Combined data:', data.length, 'agents');
       return data as AgentVerification[];
+    },
+    {
+      refreshInterval: 30000, // Refresh every 30 seconds
+      revalidateOnFocus: true,
+      onError: (error) => {
+        console.error('[VerifyAgents] SWR error:', error);
+      }
     }
   );
 
@@ -131,7 +177,8 @@ export default function VerifyAgents() {
       }
 
       toast({ title: 'Agent approved!', description: `Agent ID: ${agentIdData}` });
-      mutate('all-pending-agents');
+      // Refresh the pending agents list
+      await mutate('all-pending-agents');
       mutate('admin-stats');
       setDialogOpen(false);
       setSelectedAgent(null);
@@ -186,7 +233,8 @@ export default function VerifyAgents() {
       }
 
       toast({ title: 'Agent rejected', description: 'The agent has been notified.' });
-      mutate('all-pending-agents');
+      // Refresh the pending agents list
+      await mutate('all-pending-agents');
       mutate('admin-stats');
       setDialogOpen(false);
       setSelectedAgent(null);
@@ -218,20 +266,79 @@ export default function VerifyAgents() {
             <div>
               <h1 className="text-3xl font-bold">Agent Verifications</h1>
               <p className="text-muted-foreground">Review and approve agent verification requests</p>
+              {import.meta.env.DEV && (
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      // Debug: Show all agent verifications
+                      const { data: all, error } = await supabase
+                        .from('agent_verifications')
+                        .select('id, user_id, verification_status, zip_file_url, submitted_at, created_at')
+                        .order('created_at', { ascending: false })
+                        .limit(20);
+                      
+                      if (error) {
+                        console.error('[DEBUG] Error:', error);
+                        toast({
+                          title: 'Debug Error',
+                          description: error.message,
+                          variant: 'destructive',
+                        });
+                        return;
+                      }
+                      
+                      console.log('[DEBUG] All agent verifications:', all);
+                      const pending = all?.filter(a => a.verification_status === 'pending') || [];
+                      const withZip = all?.filter(a => a.zip_file_url) || [];
+                      const pendingWithZip = all?.filter(a => a.verification_status === 'pending' && a.zip_file_url) || [];
+                      
+                      toast({
+                        title: 'Debug Info',
+                        description: `Total: ${all?.length || 0}, Pending: ${pending.length}, With ZIP: ${withZip.length}, Pending+ZIP: ${pendingWithZip.length}`,
+                      });
+                    }}
+                  >
+                    Debug: Show All
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => mutate('all-pending-agents')}
+                  >
+                    Refresh
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={async () => {
-              if (!profile?.email) {
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                mutate('all-pending-agents');
                 toast({
-                  title: 'Error',
-                  description: 'No email address found',
-                  variant: 'destructive'
+                  title: 'Refreshed',
+                  description: 'Verification list has been refreshed.',
                 });
-                return;
-              }
-              setTestingEmail(true);
+              }}
+            >
+              <Loader2 className="h-4 w-4 mr-2" />
+              Refresh List
+            </Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                if (!profile?.email) {
+                  toast({
+                    title: 'Error',
+                    description: 'No email address found',
+                    variant: 'destructive'
+                  });
+                  return;
+                }
+                setTestingEmail(true);
               try {
                 const result = await sendEmail({
                   to: profile.email,
@@ -276,12 +383,28 @@ export default function VerifyAgents() {
               </>
             )}
           </Button>
+          </div>
         </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
+        ) : queryError ? (
+          <Card>
+            <CardContent className="py-16 text-center">
+              <AlertTriangle className="h-16 w-16 mx-auto text-destructive mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Error loading verifications</h3>
+              <p className="text-muted-foreground">{queryError.message || 'Failed to load pending agents'}</p>
+              <Button 
+                onClick={() => mutate('all-pending-agents')} 
+                className="mt-4"
+                variant="outline"
+              >
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
         ) : pendingAgents && pendingAgents.length > 0 ? (
           <div className="space-y-4">
             {pendingAgents.map((agent) => (

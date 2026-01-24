@@ -75,8 +75,16 @@ export default function AdminProfile() {
         setNewPassword('');
       }
 
-      // Refresh profile in auth context so avatar updates everywhere
-      await refreshProfile();
+      // Optimistically update profile immediately for instant UI feedback
+      const updatedProfile = {
+        email,
+        phone,
+        avatar_url: avatarUrl,
+      };
+      
+      // Update auth context immediately (optimistic update)
+      refreshProfile(updatedProfile);
+      
       setAvatarFile(null);
       setAvatarPreview(null);
 

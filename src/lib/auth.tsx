@@ -28,7 +28,8 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   isRole: (role: UserRole) => boolean;
-  refreshProfile: () => Promise<void>;
+  refreshProfile: (updatedProfile?: Partial<Profile>) => Promise<void>;
+  updateProfile: (updates: Partial<Profile>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (session?.user) {
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchProfile(session.user.id, true);
           }, 0);
         } else {
           setProfile(null);
@@ -60,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchProfile(session.user.id, true);
       } else {
         setLoading(false);
       }
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, isInitialLoad = false) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -78,7 +79,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (!error && data) {
-        console.log('Fetched profile:', data.email, 'role:', data.role);
+        if (import.meta.env.DEV && isInitialLoad) {
+          console.log('Fetched profile:', data.email, 'role:', data.role);
+        }
         setProfile(data as Profile);
       } else if (error) {
         console.error('Error fetching profile:', error);
@@ -86,17 +89,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setLoading(false);
+      }
     }
   };
 
   const signUp = async (email: string, password: string, metadata: Record<string, unknown>) => {
+    // Determine redirect URL based on role
+    // Agents should go to verification page after email verification
+    // Students should go to complete profile
+    const role = metadata.role as string;
+    let redirectPath = '/';
+    
+    if (role === 'agent') {
+      redirectPath = '/agent/verification';
+    } else if (role === 'student') {
+      redirectPath = '/auth/complete-student-profile';
+    }
+    
     // Automatically uses correct URL for localhost or production
-    const redirectUrl = getEmailRedirectUrl('/');
+    const redirectUrl = getEmailRedirectUrl(redirectPath);
     
     // Debug logging in development
     if (import.meta.env.DEV) {
       console.log('[Auth] Email redirect URL:', redirectUrl);
+      console.log('[Auth] Role:', role, 'Redirect path:', redirectPath);
     }
 
     const { data, error } = await supabase.auth.signUp({
@@ -108,8 +126,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     });
 
-    // Note: Welcome emails are sent via Supabase Auth email templates
-    // Admin-only email sending is handled separately in admin dashboard
+    // Note: Supabase automatically sends verification email when signUp is called
+    // The email contains a link that redirects to emailRedirectTo after verification
 
     return { error: error as Error | null };
   };
@@ -140,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Login successful, user role:', profileData?.role);
       // Fetch fresh profile to get permissions
       if (user.id) {
-        await fetchProfile(user.id);
+        await fetchProfile(user.id, false);
       }
       return { error: null, role: profileData?.role as UserRole | undefined };
     }
@@ -178,9 +196,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return profile?.role === role;
   };
 
-  const refreshProfile = async () => {
+  const updateProfile = (updates: Partial<Profile>) => {
+    if (profile) {
+      setProfile({ ...profile, ...updates } as Profile);
+    }
+  };
+
+  const refreshProfile = async (updatedProfile?: Partial<Profile>) => {
+    // If updated profile data is provided, update immediately (optimistic update)
+    if (updatedProfile && profile) {
+      setProfile({ ...profile, ...updatedProfile } as Profile);
+    }
+    
+    // Then fetch fresh data from database in the background (non-blocking)
     if (user?.id) {
-      await fetchProfile(user.id);
+      // Don't await - let it run in background for better UX
+      fetchProfile(user.id, false).catch(err => {
+        console.error('Background profile refresh failed:', err);
+        // If background refresh fails, we still have the optimistic update
+      });
     }
   };
 
@@ -196,6 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut,
       isRole,
       refreshProfile,
+      updateProfile,
     }}>
       {children}
     </AuthContext.Provider>

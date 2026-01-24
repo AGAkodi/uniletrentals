@@ -103,23 +103,42 @@ export default function AgentSignup() {
       return;
     }
 
-    // Update the verification record with additional info (trigger creates the base record)
+    // Update the profiles and verification records with additional info (trigger creates the base records)
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
+      // Explicitly update the profiles table to ensure email and phone are saved
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          email: formData.email,
+          phone: formData.phone,
+          full_name: formData.fullName,
+        })
+        .eq('id', user.id);
+
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+      }
+
       // Update the verification record that was created by trigger
-      await supabase.from('agent_verifications')
+      const { error: verificationError } = await supabase
+        .from('agent_verifications')
         .update({
           company_name: formData.companyName || null,
           office_address: formData.officeAddress,
         })
         .eq('user_id', user.id);
+
+      if (verificationError) {
+        console.error('Error updating agent verification:', verificationError);
+      }
     }
 
     setLoading(false);
     toast({
       title: 'Account created!',
-      description: 'Your agent account is pending verification. Please upload your verification documents.'
+      description: 'Please check your email to verify your account. After verification, you can upload your documents.'
     });
     navigate('/auth/check-email');
   };

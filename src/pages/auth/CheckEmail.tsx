@@ -23,6 +23,7 @@ export default function CheckEmail() {
                     <div className="space-y-2 text-muted-foreground">
                         <p>We've sent a verification link to your email address.</p>
                         <p>Please check your inbox and click the link to verify your account.</p>
+                        <p className="text-sm mt-2 font-medium">After verifying your email, you'll be redirected to upload your verification documents.</p>
                     </div>
                 </div>
 

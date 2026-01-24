@@ -200,7 +200,7 @@ export default function AddProperty() {
       // Upload images first
       const imageUrls = await uploadImages();
 
-      // Create property - auto-approve for verified agents
+      // Create property - requires admin approval (even for verified agents)
       const { error } = await supabase.from('properties').insert({
         agent_id: profile.id,
         title: formData.title,
@@ -216,15 +216,14 @@ export default function AddProperty() {
         amenities: selectedAmenities,
         images: imageUrls,
         whatsapp_number: profile.phone,
-        status: 'approved', // Auto-approve for verified agents
-        approved_at: new Date().toISOString(),
+        status: 'pending', // Requires admin approval
       });
 
       if (error) throw error;
 
       toast({
-        title: 'Property listed successfully!',
-        description: 'Your listing is now live and visible to students.'
+        title: 'Property submitted!',
+        description: 'Your listing has been submitted for admin approval. You will be notified once it\'s reviewed.'
       });
       navigate('/agent/dashboard');
     } catch (error: any) {

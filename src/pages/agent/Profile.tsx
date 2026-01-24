@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Phone, Lock, Save, ArrowLeft, Shield, CheckCircle, Building2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,11 @@ import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import useSWR from 'swr';
 
 export default function AgentProfile() {
-  const { profile, refreshProfile } = useAuth();
+  const { profile, refreshProfile, user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState(profile?.email || '');
+  // Use profile email, fallback to user.email from auth if profile email is missing
+  const [email, setEmail] = useState(profile?.email || user?.email || '');
   const [phone, setPhone] = useState(profile?.phone || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -37,6 +38,18 @@ export default function AgentProfile() {
   );
 
   const isVerified = verification?.verification_status === 'approved';
+
+  // Update email and phone when profile or user changes
+  useEffect(() => {
+    if (profile?.email) {
+      setEmail(profile.email);
+    } else if (user?.email) {
+      setEmail(user.email);
+    }
+    if (profile?.phone) {
+      setPhone(profile.phone);
+    }
+  }, [profile, user]);
 
   const handleAvatarChange = (file: File) => {
     setAvatarFile(file);
@@ -91,8 +104,16 @@ export default function AgentProfile() {
         setNewPassword('');
       }
 
-      // Refresh profile in auth context so avatar updates everywhere
-      await refreshProfile();
+      // Optimistically update profile immediately for instant UI feedback
+      const updatedProfile = {
+        email,
+        phone,
+        avatar_url: avatarUrl,
+      };
+      
+      // Update auth context immediately (optimistic update)
+      refreshProfile(updatedProfile);
+      
       setAvatarFile(null);
       setAvatarPreview(null);
 
@@ -176,6 +197,26 @@ export default function AgentProfile() {
                   <p className="font-medium">{profile?.full_name || 'Not set'}</p>
                 </div>
               </div>
+              <div>
+                <Label className="text-muted-foreground flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email Address
+                </Label>
+                <div className="mt-1 p-3 bg-muted rounded-lg">
+                  <p className="font-medium">{profile?.email || user?.email || 'Not set'}</p>
+                </div>
+              </div>
+              {profile?.phone && (
+                <div>
+                  <Label className="text-muted-foreground flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    Phone Number
+                  </Label>
+                  <div className="mt-1 p-3 bg-muted rounded-lg">
+                    <p className="font-medium">{profile.phone}</p>
+                  </div>
+                </div>
+              )}
               {verification?.company_name && (
                 <div>
                   <Label className="text-muted-foreground flex items-center gap-2">
