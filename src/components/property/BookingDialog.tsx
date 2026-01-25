@@ -43,8 +43,16 @@ export function BookingDialog({ propertyId, agentId, propertyTitle, onBookingCom
 
     setIsSubmitting(true);
 
+    console.log('[BookingDialog] Creating booking with:', {
+      user_id: user.id,
+      property_id: propertyId,
+      agent_id: agentId,
+      scheduled_date: format(date, 'yyyy-MM-dd'),
+      scheduled_time: time,
+    });
+
     // Create booking
-    const { error: bookingError } = await supabase
+    const { data: bookingData, error: bookingError } = await supabase
       .from('bookings')
       .insert({
         user_id: user.id,
@@ -53,7 +61,11 @@ export function BookingDialog({ propertyId, agentId, propertyTitle, onBookingCom
         scheduled_date: format(date, 'yyyy-MM-dd'),
         scheduled_time: time,
         status: 'pending'
-      });
+      })
+      .select()
+      .single();
+    
+    console.log('[BookingDialog] Booking result:', bookingData, bookingError);
 
     if (bookingError) {
       setIsSubmitting(false);

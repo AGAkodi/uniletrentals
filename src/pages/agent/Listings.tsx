@@ -45,19 +45,31 @@ export default function AgentListings() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
 
-  const { data: properties, isLoading } = useSWR<Property[]>(
+  const { data: properties, isLoading, error: fetchError } = useSWR<Property[]>(
     profile?.id ? `agent-all-properties-${profile.id}` : null,
     async () => {
+      console.log('[AgentListings] Fetching properties for agent_id:', profile!.id);
+      
       const { data, error } = await supabase
         .from('properties')
         .select('*')
         .eq('agent_id', profile!.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[AgentListings] Error fetching properties:', error);
+        throw error;
+      }
+      
+      console.log('[AgentListings] Properties found:', data?.length || 0, data);
       return data as Property[];
     }
   );
+
+  // Debug logging
+  if (fetchError) {
+    console.error('[AgentListings] SWR fetch error:', fetchError);
+  }
 
   const filteredProperties = properties?.filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

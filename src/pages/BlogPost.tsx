@@ -69,6 +69,7 @@ export default function BlogPost() {
           </Link>
         </Button>
 
+        {/* 1. Cover Image */}
         {blog.cover_image && (
           <div className="aspect-video rounded-xl overflow-hidden mb-8">
             <img
@@ -79,12 +80,26 @@ export default function BlogPost() {
           </div>
         )}
 
-        <h1 className="text-4xl font-bold mb-4">{blog.title}</h1>
+        {/* 2. Title */}
+        <h1 className="text-4xl font-bold mb-6">{blog.title}</h1>
 
-        <div className="flex items-center gap-6 mb-8 pb-8 border-b">
+        {/* 3. Description (Content) */}
+        <div className="prose prose-lg max-w-none mb-8">
+          <div dangerouslySetInnerHTML={{ __html: blog.content.replace(/\n/g, '<br />') }} />
+        </div>
+
+        {/* 4. Summary */}
+        {blog.excerpt && (
+          <div className="bg-secondary/50 rounded-lg p-6 mb-8 border-l-4 border-primary">
+            <p className="text-lg text-muted-foreground italic">{blog.excerpt}</p>
+          </div>
+        )}
+
+        {/* 5. Author Info */}
+        <div className="flex items-center gap-6 pt-8 border-t">
           {blog.author && (
             <div className="flex items-center gap-3">
-              <Avatar>
+              <Avatar className="h-12 w-12">
                 <AvatarImage 
                   src={getAvatarUrl(
                     blog.author.avatar_url,
@@ -94,12 +109,12 @@ export default function BlogPost() {
                 <AvatarFallback>{blog.author.full_name?.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium">{blog.author.full_name}</p>
+                <p className="font-medium text-lg">{blog.author.full_name}</p>
                 <p className="text-sm text-muted-foreground">Author</p>
               </div>
             </div>
           )}
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground ml-auto">
             <Calendar className="h-4 w-4" />
             {blog.published_at ? new Date(blog.published_at).toLocaleDateString('en-US', {
               year: 'numeric',
@@ -107,10 +122,6 @@ export default function BlogPost() {
               day: 'numeric',
             }) : 'Draft'}
           </div>
-        </div>
-
-        <div className="prose prose-lg max-w-none">
-          <div dangerouslySetInnerHTML={{ __html: blog.content.replace(/\n/g, '<br />') }} />
         </div>
       </article>
     </Layout>

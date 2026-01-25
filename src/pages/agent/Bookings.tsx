@@ -125,17 +125,30 @@ function AgentBookingsContent() {
   const { profile } = useAuth();
   const { toast } = useToast();
 
-  const { data: bookings, mutate } = useSWR<Booking[]>(
+  const { data: bookings, mutate, error: bookingsError } = useSWR<Booking[]>(
     profile?.id ? `agent-all-bookings-${profile.id}` : null,
     async () => {
-      const { data } = await supabase
+      console.log('[AgentBookings] Fetching bookings for agent_id:', profile!.id);
+      
+      const { data, error } = await supabase
         .from('bookings')
         .select('*, property:properties(id, title, images), user:profiles!bookings_user_id_fkey(id, full_name, email, phone)')
         .eq('agent_id', profile!.id)
         .order('scheduled_date', { ascending: true });
+      
+      if (error) {
+        console.error('[AgentBookings] Error fetching bookings:', error);
+      }
+      console.log('[AgentBookings] Bookings found:', data?.length || 0, data);
+      
       return data as Booking[];
     }
   );
+
+  // Debug log
+  if (bookingsError) {
+    console.error('[AgentBookings] SWR error:', bookingsError);
+  }
 
   const updateStatus = async (bookingId: string, status: 'pending' | 'confirmed' | 'cancelled' | 'completed', userId: string, propertyTitle: string) => {
     const { error } = await supabase

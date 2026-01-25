@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/layout/Navbar';
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 
 const AMENITIES_OPTIONS = [
   'WiFi', 'Air Conditioning', 'Parking', 'Security', 'Water Supply',
@@ -27,8 +27,7 @@ const propertySchema = z.object({
   description: z.string().min(20, 'Description must be at least 20 characters').max(2000),
   price: z.number().min(1000, 'Price must be at least ₦1,000'),
   address: z.string().min(10, 'Please provide a complete address'),
-  city: z.string().min(2, 'City is required'),
-  state: z.string().min(2, 'State is required'),
+  location: z.string().min(3, 'Location is required'),
   bedrooms: z.number().min(0).max(10),
   bathrooms: z.number().min(0).max(10),
   latitude: z.number().optional(),
@@ -50,14 +49,14 @@ export default function AddProperty() {
     description: '',
     price: '',
     address: '',
-    city: '',
-    state: '',
+    location: '',
     bedrooms: 1,
     bathrooms: 1,
     latitude: '',
     longitude: '',
   });
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [otherAmenities, setOtherAmenities] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -179,6 +178,13 @@ export default function AddProperty() {
       longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
     };
 
+    // Combine selected amenities with custom "other" amenities
+    const customAmenities = otherAmenities
+      .split(',')
+      .map(a => a.trim())
+      .filter(a => a.length > 0);
+    const allAmenities = [...selectedAmenities, ...customAmenities];
+
     const result = propertySchema.safeParse(validationData);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -200,32 +206,46 @@ export default function AddProperty() {
       // Upload images first
       const imageUrls = await uploadImages();
 
-      // Create property - requires admin approval (even for verified agents)
-      const { error } = await supabase.from('properties').insert({
+      console.log('[AddProperty] Creating property with agent_id:', profile.id);
+      
+      // Create property - verified agents get immediate approval
+      const { data: insertedProperty, error } = await supabase.from('properties').insert({
         agent_id: profile.id,
         title: formData.title,
         description: formData.description,
         price: parseFloat(formData.price),
         address: formData.address,
-        city: formData.city,
-        state: formData.state,
+        city: formData.location, // Using location field for city
+        state: formData.location, // Using location field for state
         bedrooms: formData.bedrooms,
         bathrooms: formData.bathrooms,
         latitude: formData.latitude ? parseFloat(formData.latitude) : null,
         longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-        amenities: selectedAmenities,
+        amenities: allAmenities,
         images: imageUrls,
         whatsapp_number: profile.phone,
-        status: 'pending', // Requires admin approval
-      });
+        status: 'approved', // Verified agents get immediate approval
+        approved_at: new Date().toISOString(),
+      }).select().single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[AddProperty] Insert error:', error);
+        throw error;
+      }
+      
+      console.log('[AddProperty] Property created successfully:', insertedProperty);
+
+      // Refresh listings cache
+      mutate(`agent-all-properties-${profile.id}`);
+      mutate(`agent-properties-${profile.id}`);
+      mutate('properties');
+      mutate('featured-properties');
 
       toast({
-        title: 'Property submitted!',
-        description: 'Your listing has been submitted for admin approval. You will be notified once it\'s reviewed.'
+        title: 'Property listed successfully!',
+        description: 'Your listing is now live and visible to students.'
       });
-      navigate('/agent/dashboard');
+      navigate('/agent/listings');
     } catch (error: any) {
       toast({
         title: 'Failed to create property',
@@ -310,7 +330,7 @@ export default function AddProperty() {
           </div>
           <div>
             <h1 className="text-3xl font-bold">Add New Property</h1>
-            <p className="text-muted-foreground">Fill in the details to list your property</p>
+            <p className="text-muted-foreground">Fill in the details to publish your property listing</p>
           </div>
         </div>
 
@@ -440,30 +460,16 @@ export default function AddProperty() {
                 {errors.address && <p className="text-sm text-destructive">{errors.address}</p>}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    name="city"
-                    placeholder="Lagos"
-                    value={formData.city}
-                    onChange={handleChange}
-                  />
-                  {errors.city && <p className="text-sm text-destructive">{errors.city}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="state">State</Label>
-                  <Input
-                    id="state"
-                    name="state"
-                    placeholder="Lagos State"
-                    value={formData.state}
-                    onChange={handleChange}
-                  />
-                  {errors.state && <p className="text-sm text-destructive">{errors.state}</p>}
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  name="location"
+                  placeholder="Dama, Talba Road"
+                  value={formData.location}
+                  onChange={handleChange}
+                />
+                {errors.location && <p className="text-sm text-destructive">{errors.location}</p>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -504,7 +510,7 @@ export default function AddProperty() {
             <CardHeader>
               <CardTitle>Amenities</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 {AMENITIES_OPTIONS.map((amenity) => (
                   <button
@@ -519,6 +525,19 @@ export default function AddProperty() {
                     {amenity}
                   </button>
                 ))}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="otherAmenities">Others (comma separated)</Label>
+                <Input
+                  id="otherAmenities"
+                  placeholder="e.g., Swimming Pool, Gym, Rooftop Access"
+                  value={otherAmenities}
+                  onChange={(e) => setOtherAmenities(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Add any additional amenities not listed above, separated by commas
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -570,10 +589,10 @@ export default function AddProperty() {
             {loading ? (
               <>
                 <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Uploading & Creating...
+                Uploading & Listing...
               </>
             ) : (
-              'Submit Property for Approval'
+              'List Property'
             )}
           </Button>
         </form>

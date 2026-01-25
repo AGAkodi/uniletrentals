@@ -18,10 +18,11 @@ interface AgentProfilePopupProps {
     avatar_url?: string | null;
     email?: string;
   };
+  propertyId?: string;
   children: React.ReactNode;
 }
 
-export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
+export function AgentProfilePopup({ agent, propertyId, children }: AgentProfilePopupProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -44,21 +45,28 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
   );
 
   // Fetch agent's verification info
-  const { data: verification } = useSWR(
-    open ? `agent-verification-${agent.id}` : null,
+  const { data: verification, error: verificationError } = useSWR(
+    open ? `agent-verification-popup-${agent.id}` : null,
     async () => {
-      const { data } = await supabase
+      console.log('[AgentPopup] Fetching verification for:', agent.id);
+      const { data, error } = await supabase
         .from('agent_verifications')
         .select('agent_id, verification_status')
         .eq('user_id', agent.id)
         .maybeSingle();
+      
+      if (error) {
+        console.error('[AgentPopup] Verification fetch error:', error);
+      }
+      console.log('[AgentPopup] Verification result:', data);
       return data;
-    }
+    },
+    { revalidateOnFocus: true }
   );
 
-  // Fetch agent's reviews
-  const { data: reviews, mutate: mutateReviews } = useSWR(
-    open ? `agent-reviews-${agent.id}` : null,
+  // Fetch ALL agent's reviews for aggregate rating
+  const { data: allReviews, mutate: mutateReviews } = useSWR(
+    open ? `agent-all-reviews-${agent.id}` : null,
     async () => {
       const { data } = await supabase
         .from('reviews')
@@ -71,19 +79,50 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
           profiles:user_id (full_name, avatar_url)
         `)
         .eq('agent_id', agent.id)
-        .order('created_at', { ascending: false })
-        .limit(5);
+        .order('created_at', { ascending: false });
       return data || [];
     }
   );
 
-  const averageRating = reviews?.length
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+  // Calculate aggregate rating from ALL reviews across all properties
+  const totalReviews = allReviews?.length || 0;
+  const averageRating = totalReviews > 0
+    ? allReviews!.reduce((sum, r) => sum + r.rating, 0) / totalReviews
     : 0;
+  
+  // Display only the latest 5 reviews
+  const displayReviews = allReviews?.slice(0, 5) || [];
+
+  // Check if user already reviewed this agent for this specific property
+  const { data: existingReview } = useSWR(
+    open && user && propertyId ? `user-review-${user.id}-${agent.id}-${propertyId}` : null,
+    async () => {
+      const { data } = await supabase
+        .from('reviews')
+        .select('id')
+        .eq('user_id', user!.id)
+        .eq('agent_id', agent.id)
+        .eq('property_id', propertyId!)
+        .maybeSingle();
+      return data;
+    }
+  );
+
+  const hasReviewedThisProperty = !!existingReview;
 
   const handleSubmitReview = async () => {
     if (!user) {
       toast({ title: 'Please login', description: 'You need to be logged in to leave a review.', variant: 'destructive' });
+      return;
+    }
+
+    if (!propertyId) {
+      toast({ title: 'Error', description: 'Property information is missing.', variant: 'destructive' });
+      return;
+    }
+
+    if (hasReviewedThisProperty) {
+      toast({ title: 'Already reviewed', description: 'You have already reviewed this agent for this property.', variant: 'destructive' });
       return;
     }
 
@@ -99,6 +138,7 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
       .insert({
         user_id: user.id,
         agent_id: agent.id,
+        property_id: propertyId,
         rating,
         comment: comment.trim() || null,
       });
@@ -106,8 +146,9 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
     setIsSubmitting(false);
 
     if (error) {
+      console.error('Review submission error:', error);
       if (error.code === '23505') {
-        toast({ title: 'Already reviewed', description: 'You have already reviewed this agent.', variant: 'destructive' });
+        toast({ title: 'Already reviewed', description: 'You have already reviewed this agent for this property.', variant: 'destructive' });
       } else {
         toast({ title: 'Error', description: 'Failed to submit review. Please try again.', variant: 'destructive' });
       }
@@ -132,8 +173,8 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
 
         <div className="space-y-3">
           {/* Agent Info */}
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
+          <div className="text-center">
+            <Avatar className="h-12 w-12 mx-auto mb-2">
               <AvatarImage 
                 src={getAvatarUrl(
                   agent.avatar_url,
@@ -144,18 +185,16 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
                 {agent.full_name?.charAt(0) || 'A'}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h3 className="font-semibold text-sm">{agent.full_name}</h3>
-              {verification?.agent_id && (
-                <p className="text-xs text-muted-foreground">ID: {verification.agent_id}</p>
-              )}
-              {verification?.verification_status === 'approved' && (
-                <div className="flex items-center gap-1 text-xs text-accent">
-                  <CheckCircle className="h-3 w-3" />
-                  <span>Verified</span>
-                </div>
-              )}
-            </div>
+            <h3 className="font-semibold text-base">{agent.full_name}</h3>
+            <p className="text-xs text-muted-foreground font-mono">
+              @{verification?.agent_id || 'pending'}
+            </p>
+            {verification?.verification_status === 'approved' && (
+              <div className="flex items-center justify-center gap-1 text-xs text-accent mt-1">
+                <CheckCircle className="h-3 w-3" />
+                <span>Verified Agent</span>
+              </div>
+            )}
           </div>
 
           {/* Stats */}
@@ -172,14 +211,14 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
                 <Star className="h-3 w-3 fill-warning text-warning" />
                 <span className="text-sm font-bold">{averageRating.toFixed(1)}</span>
               </div>
-              <p className="text-xs text-muted-foreground">{reviews?.length || 0} Reviews</p>
+              <p className="text-xs text-muted-foreground">{totalReviews} Reviews</p>
             </div>
           </div>
 
           {/* Reviews */}
-          {reviews && reviews.length > 0 && (
-            <div className="max-h-20 overflow-y-auto space-y-1">
-              {reviews.slice(0, 2).map((review) => (
+          {displayReviews.length > 0 && (
+            <div className="max-h-24 overflow-y-auto space-y-1">
+              {displayReviews.slice(0, 3).map((review) => (
                 <div key={review.id} className="bg-secondary/50 rounded p-2 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-medium truncate">{(review.profiles as any)?.full_name || 'User'}</span>
@@ -202,42 +241,51 @@ export function AgentProfilePopup({ agent, children }: AgentProfilePopupProps) {
 
           {/* Leave Review */}
           <div className="border-t pt-3">
-            <p className="text-xs font-medium mb-2">Rate this agent</p>
-            <div className="flex items-center gap-0.5 mb-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => setRating(star)}
-                  onMouseEnter={() => setHoverRating(star)}
-                  onMouseLeave={() => setHoverRating(0)}
-                  className="focus:outline-none"
+            {hasReviewedThisProperty ? (
+              <div className="text-center py-2">
+                <CheckCircle className="h-5 w-5 text-accent mx-auto mb-1" />
+                <p className="text-xs text-muted-foreground">You've already reviewed this agent for this property</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs font-medium mb-2">Rate this agent</p>
+                <div className="flex items-center gap-0.5 mb-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      className="focus:outline-none"
+                    >
+                      <Star
+                        className={`h-5 w-5 transition-colors ${star <= (hoverRating || rating)
+                          ? 'fill-warning text-warning'
+                          : 'text-muted-foreground hover:text-warning/50'
+                          }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <Textarea
+                  placeholder="Comment (optional)"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  rows={2}
+                  className="text-xs min-h-0"
+                />
+                <Button
+                  onClick={handleSubmitReview}
+                  disabled={isSubmitting || rating === 0}
+                  size="sm"
+                  className="w-full mt-2"
                 >
-                  <Star
-                    className={`h-5 w-5 transition-colors ${star <= (hoverRating || rating)
-                      ? 'fill-warning text-warning'
-                      : 'text-muted-foreground hover:text-warning/50'
-                      }`}
-                  />
-                </button>
-              ))}
-            </div>
-            <Textarea
-              placeholder="Comment (optional)"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={2}
-              className="text-xs min-h-0"
-            />
-            <Button
-              onClick={handleSubmitReview}
-              disabled={isSubmitting || rating === 0}
-              size="sm"
-              className="w-full mt-2"
-            >
-              <Send className="h-3 w-3 mr-1" />
-              Submit
-            </Button>
+                  <Send className="h-3 w-3 mr-1" />
+                  Submit
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </DialogContent>

@@ -2,13 +2,11 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Calendar as CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { Property } from '@/types/database';
-import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -35,12 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 
 const formSchema = z.object({
   gender_preference: z.enum(['male', 'female', 'any'], {
@@ -52,7 +44,6 @@ const formSchema = z.object({
   total_rent: z.number().min(1, 'Total rent is required'),
   rent_split: z.number().min(1, 'Rent split is required'),
   description: z.string().max(500, 'Description must be less than 500 characters').optional(),
-  move_in_date: z.date().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -102,7 +93,7 @@ export function CreateSharedRentalDialog({
         total_rent: values.total_rent,
         rent_split: values.rent_split,
         description: values.description || null,
-        move_in_date: values.move_in_date ? format(values.move_in_date, 'yyyy-MM-dd') : null,
+        status: 'active',
       });
 
       if (error) throw error;
@@ -249,47 +240,6 @@ export function CreateSharedRentalDialog({
                   <FormDescription>
                     Describe your ideal roommate (optional)
                   </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="move_in_date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Move-in Date (Optional)</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            'w-full pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, 'PPP')
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}

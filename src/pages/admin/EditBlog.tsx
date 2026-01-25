@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Save, ArrowLeft, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Navbar } from '@/components/layout/Navbar';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
@@ -20,15 +19,14 @@ export default function EditBlog() {
     const isEditing = !!id;
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [isFetching, setIsFetching] = useState(isEditing);
 
     const [formData, setFormData] = useState({
         title: '',
-        slug: '',
-        excerpt: '',
-        content: '',
+        summary: '',
+        description: '',
         cover_image: '',
-        published: false
     });
 
     // Fetch existing blog if editing
@@ -50,11 +48,9 @@ export default function EditBlog() {
 
             setFormData({
                 title: data.title,
-                slug: data.slug,
-                excerpt: data.excerpt || '',
-                content: data.content,
+                summary: data.excerpt || '',
+                description: data.content,
                 cover_image: data.cover_image || '',
-                published: data.published
             });
             setIsFetching(false);
         };
@@ -65,59 +61,59 @@ export default function EditBlog() {
     }, [id, isEditing, navigate, toast]);
 
     // Auto-generate slug from title
-    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const title = e.target.value;
-        if (!isEditing) {
-            const slug = title
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)+/g, '');
-            setFormData(prev => ({ ...prev, title, slug }));
-        } else {
-            setFormData(prev => ({ ...prev, title }));
-        }
+    const generateSlug = (title: string) => {
+        return title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, '');
     };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // TODO: Implement actual image upload to storage bucket
-        // For now, we'll assume a placeholder or implement storage logic if bucket exists
-        // Ideally: upload to 'blog-images' -> get public URL
+        if (!file.type.startsWith('image/')) {
+            toast({ title: 'Invalid file', description: 'Please select an image file.', variant: 'destructive' });
+            return;
+        }
 
-        // Quick Hack for Demo/MVP if storage isn't fully set up with UI:
-        // create object URL for preview (not persistent across devices but proves UI works)
-        // OR upload to existing bucket if we know it works.
+        if (file.size > 5 * 1024 * 1024) {
+            toast({ title: 'File too large', description: 'Image must be less than 5MB.', variant: 'destructive' });
+            return;
+        }
 
-        // Let's try to upload to 'property-images' if 'blog-images' fails or just use property-images as a generic one?
-        // Safer to just try uploading to 'blog-images' and handle error.
+        setIsUploading(true);
 
         const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `${fileName}`;
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
         try {
             const { error: uploadError } = await supabase.storage
                 .from('blog-images')
-                .upload(filePath, file);
+                .upload(fileName, file);
 
             if (uploadError) {
-                // Fallback or error
-                console.error(uploadError);
-                toast({ title: 'Upload Failed', description: 'Could not upload image. Ensure bucket exists.', variant: 'destructive' });
+                console.error('Upload error:', uploadError);
+                toast({ 
+                    title: 'Upload Failed', 
+                    description: 'Could not upload image. Please run the blog-images bucket SQL migration.', 
+                    variant: 'destructive' 
+                });
                 return;
             }
 
             const { data: { publicUrl } } = supabase.storage
                 .from('blog-images')
-                .getPublicUrl(filePath);
+                .getPublicUrl(fileName);
 
             setFormData(prev => ({ ...prev, cover_image: publicUrl }));
+            toast({ title: 'Image uploaded successfully!' });
 
         } catch (error) {
             console.error(error);
             toast({ title: 'Error', description: 'Image upload failed.', variant: 'destructive' });
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -125,13 +121,30 @@ export default function EditBlog() {
         e.preventDefault();
         if (!user) return;
 
+        if (!formData.title.trim()) {
+            toast({ title: 'Title required', description: 'Please enter a title for your blog post.', variant: 'destructive' });
+            return;
+        }
+
+        if (!formData.description.trim()) {
+            toast({ title: 'Description required', description: 'Please enter the blog content.', variant: 'destructive' });
+            return;
+        }
+
         setIsLoading(true);
 
+        const slug = generateSlug(formData.title);
+        
         const payload = {
-            ...formData,
+            title: formData.title,
+            slug: slug,
+            excerpt: formData.summary,
+            content: formData.description,
+            cover_image: formData.cover_image,
             author_id: user.id,
+            published: true,
+            published_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            ...(formData.published && !isEditing ? { published_at: new Date().toISOString() } : {})
         };
 
         let error;
@@ -152,11 +165,11 @@ export default function EditBlog() {
 
         if (error) {
             console.error(error);
-            toast({ title: 'Error', description: 'Failed to save blog post.', variant: 'destructive' });
+            toast({ title: 'Error', description: 'Failed to publish blog post.', variant: 'destructive' });
             return;
         }
 
-        toast({ title: 'Success', description: 'Blog post saved.' });
+        toast({ title: 'Success', description: 'Blog post published!' });
         navigate('/admin/manage-blogs');
     };
 
@@ -173,7 +186,7 @@ export default function EditBlog() {
             <Navbar />
 
             <main className="pt-8 px-6 md:px-8 lg:px-12 pb-12">
-                <div className="max-w-4xl mx-auto">
+                <div className="max-w-3xl mx-auto">
                     <div className="flex items-center gap-4 mb-8">
                         <Button variant="ghost" size="icon" onClick={() => navigate('/admin/manage-blogs')}>
                             <ArrowLeft className="h-5 w-5" />
@@ -181,112 +194,114 @@ export default function EditBlog() {
                         <h1 className="text-3xl font-bold font-display">{isEditing ? 'Edit Blog Post' : 'Create New Post'}</h1>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {/* Main Content */}
-                            <div className="md:col-span-2 space-y-6">
-                                <Card>
-                                    <CardContent className="p-6 space-y-4">
-                                        <div className="space-y-2">
-                                            <Label>Title</Label>
-                                            <Input
-                                                value={formData.title}
-                                                onChange={handleTitleChange}
-                                                placeholder="Enter post title"
-                                                required
-                                            />
-                                        </div>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <Card>
+                            <CardContent className="p-6 space-y-6">
+                                {/* Title */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="title">Title</Label>
+                                    <Input
+                                        id="title"
+                                        value={formData.title}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                                        placeholder="Enter blog title"
+                                        required
+                                    />
+                                </div>
 
-                                        <div className="space-y-2">
-                                            <Label>Slug</Label>
-                                            <Input
-                                                value={formData.slug}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                                                placeholder="post-url-slug"
-                                                required
-                                            />
-                                            <p className="text-xs text-muted-foreground">URL: /blog/{formData.slug}</p>
-                                        </div>
+                                {/* Summary */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="summary">Summary</Label>
+                                    <Textarea
+                                        id="summary"
+                                        value={formData.summary}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, summary: e.target.value }))}
+                                        placeholder="A brief summary of your blog post..."
+                                        rows={3}
+                                    />
+                                </div>
 
-                                        <div className="space-y-2">
-                                            <Label>Excerpt</Label>
-                                            <Textarea
-                                                value={formData.excerpt}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
-                                                placeholder="Short summary..."
-                                                rows={3}
-                                            />
-                                        </div>
+                                {/* Description */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="description">Description</Label>
+                                    <Textarea
+                                        id="description"
+                                        value={formData.description}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                                        placeholder="Write your full blog post content here..."
+                                        className="min-h-[300px]"
+                                        required
+                                    />
+                                </div>
 
-                                        <div className="space-y-2">
-                                            <Label>Content</Label>
-                                            <Textarea
-                                                value={formData.content}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                                                placeholder="Write your post content here (Markdown supported)..."
-                                                className="min-h-[400px] font-mono"
-                                                required
-                                            />
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            {/* Sidebar */}
-                            <div className="space-y-6">
-                                <Card>
-                                    <CardContent className="p-6 space-y-6">
-                                        <div className="flex items-center justify-between">
-                                            <Label>Published</Label>
-                                            <Switch
-                                                checked={formData.published}
-                                                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, published: checked }))}
-                                            />
-                                        </div>
-
-                                        <Button type="submit" className="w-full" disabled={isLoading}>
-                                            {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                                            <Save className="h-4 w-4 mr-2" />
-                                            Save Post
-                                        </Button>
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardContent className="p-6 space-y-4">
-                                        <Label>Cover Image</Label>
-
-                                        <div className="aspect-video bg-secondary rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center relative group">
-                                            {formData.cover_image ? (
-                                                <>
-                                                    <img src={formData.cover_image} alt="Cover" className="w-full h-full object-cover" />
-                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                        <Button variant="secondary" size="sm" type="button" onClick={() => document.getElementById('image-upload')?.click()}>
-                                                            Change Image
-                                                        </Button>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <div className="text-center p-4">
-                                                    <ImageIcon className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                                                    <p className="text-sm text-muted-foreground">Upload cover image</p>
-                                                    <Button variant="link" size="sm" type="button" onClick={() => document.getElementById('image-upload')?.click()}>
-                                                        Select File
+                                {/* Cover Image */}
+                                <div className="space-y-2">
+                                    <Label>Cover Image</Label>
+                                    <div className="aspect-video bg-secondary rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center relative group">
+                                        {formData.cover_image ? (
+                                            <>
+                                                <img src={formData.cover_image} alt="Cover" className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <Button 
+                                                        variant="secondary" 
+                                                        size="sm" 
+                                                        type="button" 
+                                                        onClick={() => document.getElementById('image-upload')?.click()}
+                                                        disabled={isUploading}
+                                                    >
+                                                        {isUploading ? 'Uploading...' : 'Change Image'}
                                                     </Button>
                                                 </div>
-                                            )}
-                                            <input
-                                                id="image-upload"
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={handleImageUpload}
-                                            />
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </div>
+                                            </>
+                                        ) : (
+                                            <div className="text-center p-4">
+                                                {isUploading ? (
+                                                    <Loader2 className="h-8 w-8 mx-auto text-primary animate-spin mb-2" />
+                                                ) : (
+                                                    <ImageIcon className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                                                )}
+                                                <p className="text-sm text-muted-foreground">
+                                                    {isUploading ? 'Uploading...' : 'Upload cover image'}
+                                                </p>
+                                                {!isUploading && (
+                                                    <Button 
+                                                        variant="link" 
+                                                        size="sm" 
+                                                        type="button" 
+                                                        onClick={() => document.getElementById('image-upload')?.click()}
+                                                    >
+                                                        Select File
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        )}
+                                        <input
+                                            id="image-upload"
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleImageUpload}
+                                            disabled={isUploading}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Publish Button */}
+                                <Button type="submit" className="w-full" size="lg" disabled={isLoading || isUploading}>
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                                            Publishing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className="h-5 w-5 mr-2" />
+                                            Publish Blog Post
+                                        </>
+                                    )}
+                                </Button>
+                            </CardContent>
+                        </Card>
                     </form>
                 </div>
             </main>
